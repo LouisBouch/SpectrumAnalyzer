@@ -28,7 +28,7 @@ public class Plot extends JPanel {
 	
 	private final double EPSILON = 1e-10;//Uncertainty value 
 
-	private double[][] values;//The values of the plot for all different channels
+	private double[][] values = {{1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1}};;//The values of the plot for all different channels
 	private int nbSamples;//Amount of samples in the channel
 	private double samplesPerUnit;//The amount of samples required to make one unit (x axis)
 	private int nbPossiblePlots;//The amount of plots that can be created from the different channels
@@ -47,8 +47,6 @@ public class Plot extends JPanel {
 	private int mousePosX;
 	private int mousePosY;
 
-	private int i;//Iterative index
-
 	private double zoomPercentage = 0.9;//Zooming out reduces the size of objects by this amount
 	private int xZoomAmount;//Amount of times the window has been zoomed in or out (- -> in ; + -> out) (x axis)
 	private int yZoomAmount;//Amount of times the window has been zoomed in or out (- -> in ; + -> out) (y axis)
@@ -61,11 +59,8 @@ public class Plot extends JPanel {
 	private double xZoomOutThreshold;//When the screen is more zoomed out than this number, adjusts the scale
 	private double yZoomOutThreshold;//When the screen is more zoomed out than this number, adjusts the scale
 
-	private double anticipationValue = 0.5;//Number between 0-1 with 0 giving a more compact grid and 1 giving a more spaced grid
-	private double gridSize = 1;//Bigger values give bigger grids
-	private double gridTightness = 1.5;//Number between 0.5-1.5 with the lower numbers giving more tightness to the grid
-
-	private boolean tightGrid = true;
+	private double anticipationValue = 0.8;//Number between 0-1 with 0 giving a more compact grid and 1 giving a more spaced grid
+	private double gridSize = 0.5;//Bigger values give bigger grids
 
 	private JLabel lbl_pixPerUX;
 	private JLabel lbl_pixPerUY;
@@ -119,7 +114,9 @@ public class Plot extends JPanel {
 		springLayout.putConstraint(SpringLayout.NORTH, lbl_pixPerUY, 25, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, lbl_pixPerUY, 20, SpringLayout.WEST, this);
 		add(lbl_pixPerUY);
-
+		
+		scaleAdjust();
+		
 		//Handles the offset when the mouse is dragged in the frame
 		addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
@@ -138,6 +135,9 @@ public class Plot extends JPanel {
 			public void mousePressed(MouseEvent e) {
 				mousePosX = e.getX();
 				mousePosY = e.getY();
+				if (e.getModifiersEx() == 1088) xOffset++;
+				if (e.getModifiersEx() == 1152) xOffset--;
+				repaint();
 			}
 		});
 		//Handles zooming in the frame
@@ -159,6 +159,7 @@ public class Plot extends JPanel {
 				samplesPerUnit = wavInfo.getSampleRate();
 				nbPossiblePlots = values.length;
 				nbSamples = values[channelToPlot].length;
+				
 				repaint();
 			}
 		}
@@ -172,49 +173,32 @@ public class Plot extends JPanel {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2d.setColor(Color.RED);
+		g2d.setColor(Color.GREEN);
 
 		paintAxes(g2d);
 		if (values != null) paintWaveForm(g2d);
-
+		paintWaveForm(g2d);
 	}
 	/**
 	 * Paints the waveform
 	 * @param g2d The graphics item
 	 */
 	public void paintWaveForm(Graphics2D g2d) {
-		/* REDO WITH NEW ZOOM FUNCTIONALITIES
-		 * 
-		boolean waveFormOutOfBounds = false;
-		double samplesPerPixel = samplesPerUnit / xPixelsPerUnit;//Amount of samples that fit into a pixel
-
-		//Computes the amount of samples out of bounds from the left
-		double sampleWaveFormOffset = 0;
-		if (xOffset < 0) {
-			sampleWaveFormOffset = -xOffset * samplesPerPixel;
-			if (sampleWaveFormOffset > nbSamples) waveFormOutOfBounds = true;
-//			System.out.println("Offset: " + xOffset + " samples left: " + (nbSamples - sampleWaveFormOffset) + " samplesPerPixel: " + samplesPerPixel + " pixWidth: " + waveFormWidthPix + " pixPerUnit: " + xPixelsPerUnit);
+		int xIni = xOffset + 0;
+		int xFin;
+		int yIni = yOffset - (int) (values[0][0] * yPixelsPerUnit);
+		int yFin;
+		
+		//Places the values on the graph
+		for (int xUnit = 1; xUnit < values[0].length; xUnit+=1) {
+			xFin = xOffset + (int) (xUnit * xPixelsPerUnit);
+			yFin = yOffset - (int) (values[0][xUnit] * yPixelsPerUnit);
+			g2d.drawLine(xIni, yIni, xFin, yFin);
+			xIni = xFin;
+			yIni = yFin;
 		}
-		//Draws the waveform
-		if (!waveFormOutOfBounds) {
-			int xStart = 0;
-			int yStart = (int) values[channelToPlot][(int) sampleWaveFormOffset];
-			int xEnd;
-			int yEnd;
-
-			for (i = 0; i < ((nbSamples - sampleWaveFormOffset) / samplesPerPixel) - 1; i += 1) {//Note: Doesn't draw the last pixel
-				xEnd = xStart + 1;
-				yEnd = (int) (meanValueOfSampleChunk(values[channelToPlot], (int) sampleWaveFormOffset + (int) (samplesPerPixel)*i, (int) samplesPerPixel) * yPixelsPerUnit);
-//				yEnd = (int) (values[channelToPlot][(int) sampleWaveFormOffset + (int) (samplesPerPixel)*i] * yPixelsPerUnit);
-				int additionalXOffset = (int) (sampleWaveFormOffset / samplesPerPixel);//The additional sample offset
-//				System.out.println("max samples: " + nbSamples + " sample hit: " + (i * samplesPerPixel + sampleWaveFormOffset));
-				g2d.drawLine(xOffset + additionalXOffset + xStart, yOffset - yStart, xOffset + additionalXOffset + xEnd, yOffset - yEnd);
-				yStart = yEnd;
-				xStart++;
-				if (xEnd > getWidth()) break;
-			}
-		}
-		*/
+		
+		
 	}
 	/**
 	 * Gets the average of a chunk of samples
@@ -251,12 +235,14 @@ public class Plot extends JPanel {
 		double pixMCTB;//Represents the pixel that is a multiple of "pixelsPerStep" which is the closest to the border
 		int xPos;
 		int yPos;
+		int i;//Index value
 		//Draws the unit increments on the x axis--------------------------------------------------------------------------------------
 		double pixelsPerXStep = xPixelsPerUnit * xScale;//Amount of pixel in-between white lines
 		pixMCTB = -(xOffset - ((xOffset % pixelsPerXStep) + pixelsPerXStep) % pixelsPerXStep);
 		i = 0;
 		do {
-			xPos = xOffset + (int) pixMCTB + (int) (pixelsPerXStep*i);
+//			xPos = xOffset + (int) pixMCTB + (int) (pixelsPerXStep*i);
+			xPos = xOffset + (int) Math.round(pixMCTB + pixelsPerXStep*i);
 			yPos = yOffset;
 			printXCenteredString((Math.round((pixMCTB + pixelsPerXStep*i)/xPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
 			g2dSoftLines.drawLine(xPos, 0, xPos, getHeight());
@@ -273,7 +259,8 @@ public class Plot extends JPanel {
 				continue;
 			}
 			xPos = xOffset;
-			yPos = yOffset + (int) pixMCTB + (int) (pixelsPerYStep*i);
+//			yPos = yOffset + (int) pixMCTB + (int) (pixelsPerYStep*i);
+			yPos = yOffset + (int) Math.round(pixMCTB + pixelsPerYStep*i);
 			printYCenteredString((Math.round((-pixMCTB - pixelsPerYStep*i)/yPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
 			g2dSoftLines.drawLine(0, yPos, getWidth(), yPos);
 			i++;
@@ -320,28 +307,36 @@ public class Plot extends JPanel {
 	 * Rescales the plot
 	 */
 	public void rescale(MouseWheelEvent e) {
-		int zoomDirection = e.getWheelRotation();//(- -> in ; + -> out)
 		int modifier = e.getModifiersEx();//64 for Shift, 128 for Ctrl and 0 for nothing
 		
-		if (modifier == 64) zoomY(zoomDirection);
-		else if (modifier == 128) zoomX(zoomDirection);
-		else zoomAll(zoomDirection);
+		if (modifier == 64) zoomY(e);
+		else if (modifier == 128) zoomX(e);
+		else zoomAll(e);
 		
 	}
 	/**
 	 * Zooms all axes
 	 */
-	public void zoomAll(int zoomDirection) {
-		zoomX(zoomDirection);
-		zoomY(zoomDirection);
+	public void zoomAll(MouseWheelEvent e) {
+		zoomX(e);
+		zoomY(e);
 		
 	}
 	/**
 	 * Zooms only the x axis
 	 */
-	public void zoomX(int zoomDirection) {
+	public void zoomX(MouseWheelEvent e) {
+		int zoomDirection = e.getWheelRotation();//(- -> in ; + -> out)
 		xZoomAmount += zoomDirection;
 		adjustThresholdsTight("x");
+		
+		//Adjusts the x/y offset to keep the cursor at the same coordinates when zooming in/out
+		if (zoomDirection == 1) {//Zoom out
+			xOffset += Math.round((e.getX() - xOffset) * (1 - zoomPercentage));
+		}
+		else {//Zoom in
+			xOffset += Math.round((e.getX() - xOffset) * (1 - 1/zoomPercentage));
+		}
 		
 		//Adjusts the scale if too zoomed in or out for the x axis
 		if (Math.pow(zoomPercentage, xZoomAmount) >= xZoomInThreshold) {//Too zoomed in
@@ -374,9 +369,18 @@ public class Plot extends JPanel {
 	/**
 	 * Zooms only the y axis
 	 */
-	public void zoomY(int zoomDirection) {
+	public void zoomY(MouseWheelEvent e) {
+		int zoomDirection = e.getWheelRotation();//(- -> in ; + -> out)
 		yZoomAmount += zoomDirection;
 		adjustThresholdsTight("y");
+
+		//Adjusts the x/y offset to keep the cursor at the same coordinates when zooming in/out
+		if (zoomDirection == 1) {//Zoom out
+			yOffset += Math.round((e.getY() - yOffset) * (1 - zoomPercentage));
+		}
+		else {//Zoom in
+			yOffset += Math.round((e.getY() - yOffset) * (1 - 1/zoomPercentage));
+		}
 
 		//Adjusts the scale if too zoomed in or out for the y axis
 		if (Math.pow(zoomPercentage, yZoomAmount) >= yZoomInThreshold) {//Too zoomed in
@@ -406,27 +410,6 @@ public class Plot extends JPanel {
 		lbl_pixPerUY.setText("Pixels per unit, Y axis: " + Math.round((yPixelsPerUnit * 1000)) / 1000.0);
 	}
 	
-	/**
-	 * Adjusts the zoom limits after a scale change. Works by anticipating the next value used to multiply.
-	 * The looseness of these thresholds make zooming less frequent
-	 */
-	/*
-	public void adjustThresholdsLoose() {
-		if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {//Scale change multiplied by 2.5
-			zoomOutThreshold = Math.pow(2.5, xDivAmountByFiveHalf - gridTightness) * Math.pow(2, xDivAmountByTwo);
-			zoomInThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo + gridTightness);
-		}
-		else if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 1){//Scale change multiplied by second 2
-			zoomOutThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo - gridTightness);
-			zoomInThreshold = Math.pow(2.5, xDivAmountByFiveHalf + gridTightness) * Math.pow(2, xDivAmountByTwo);
-		}
-		else {//Scale change multiplied by first 2
-			zoomOutThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo - gridTightness);
-			zoomInThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo + gridTightness);
-		}
-	}
-	*/
-
 	/**
 	 * Adjusts the zoom limits after a scale change. Works by anticipating the next value used to multiply
 	 * The tightness of these thresholds make zooming more frequent
@@ -463,12 +446,12 @@ public class Plot extends JPanel {
 		
 		//Sets the threshold
 		if (axis.equals("x")) {
-			xZoomOutThreshold = zoomOutThreshold;
-			xZoomInThreshold = zoomInThreshold;
+			xZoomOutThreshold = zoomOutThreshold * gridSize;
+			xZoomInThreshold = zoomInThreshold * gridSize;
 		}
 		else {
-			yZoomOutThreshold = zoomOutThreshold;
-			yZoomInThreshold = zoomInThreshold;
+			yZoomOutThreshold = zoomOutThreshold * gridSize;
+			yZoomInThreshold = zoomInThreshold * gridSize;
 		}
 	}
 
@@ -479,4 +462,88 @@ public class Plot extends JPanel {
 	public void setWavInfo(WavInfo wavInfo) {
 		this.wavInfo = wavInfo;
 	}
+	/**
+	 * Adjusts the scale depending on the gridsize value
+	 */
+	public void scaleAdjust() {
+		boolean finished;
+		//Adjusts the scale if too zoomed in or out for both axes
+		do {
+			finished = true;
+			adjustThresholdsTight("x");
+			adjustThresholdsTight("y");
+			//y
+			if (Math.pow(zoomPercentage, yZoomAmount) >= yZoomInThreshold) {//Too zoomed in
+				if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
+					yDivAmountByFiveHalf++;
+					finished = false;
+				}
+				else {
+					yDivAmountByTwo++;
+					finished = false;
+				}
+			}
+			else if (Math.pow(zoomPercentage, yZoomAmount) < yZoomOutThreshold) {//Too zoomed out
+				if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
+					yDivAmountByFiveHalf--;
+					finished = false;
+				}
+				else {
+					yDivAmountByTwo--;
+					finished = false;
+				}
+			}
+			//x
+			if (Math.pow(zoomPercentage, xZoomAmount) >= xZoomInThreshold) {//Too zoomed in
+				if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
+					xDivAmountByFiveHalf++;
+					finished = false;
+				}
+				else {
+					xDivAmountByTwo++;
+					finished = false;
+				}
+			}
+			else if (Math.pow(zoomPercentage, xZoomAmount) < xZoomOutThreshold) {//Too zoomed out
+				if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
+					xDivAmountByFiveHalf--;
+					finished = false;
+				}
+				else {
+					xDivAmountByTwo--;
+					finished = false;
+				}
+			}
+		} while (!finished);
+
+		//Adjusts the scale
+		yScale = Math.pow(2, -yDivAmountByTwo) * Math.pow(2.5, -yDivAmountByFiveHalf);
+		xScale = Math.pow(2, -xDivAmountByTwo) * Math.pow(2.5, -xDivAmountByFiveHalf);
+
+		repaint();
+	}
 }
+
+/**
+ * Adjusts the zoom limits after a scale change. Works by anticipating the next value used to multiply.
+ * The looseness of these thresholds make zooming less frequent
+ */
+/*
+ * private double gridTightness = 1.5;//Number between 0.5-1.5 with the lower numbers giving more tightness to the grid
+
+private boolean tightGrid = true;
+public void adjustThresholdsLoose() {
+	if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {//Scale change multiplied by 2.5
+		zoomOutThreshold = Math.pow(2.5, xDivAmountByFiveHalf - gridTightness) * Math.pow(2, xDivAmountByTwo);
+		zoomInThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo + gridTightness);
+	}
+	else if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 1){//Scale change multiplied by second 2
+		zoomOutThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo - gridTightness);
+		zoomInThreshold = Math.pow(2.5, xDivAmountByFiveHalf + gridTightness) * Math.pow(2, xDivAmountByTwo);
+	}
+	else {//Scale change multiplied by first 2
+		zoomOutThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo - gridTightness);
+		zoomInThreshold = Math.pow(2.5, xDivAmountByFiveHalf) * Math.pow(2, xDivAmountByTwo + gridTightness);
+	}
+}
+*/
