@@ -14,25 +14,33 @@ import java.awt.geom.Rectangle2D;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
 import subchunksAndInfo.WavInfo;
 import tools.ScreenSize;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class Plot extends JPanel {
 
 	private static final long serialVersionUID = -8205056792145014780L;
+	
+	JPanel panel = this;
 
 	private WavInfo wavInfo;//Contains the information about the wav file
 	
+	private SettingWindow waveFormSet;//The settings window
+	
 	private final double EPSILON = 1e-10;//Uncertainty value 
 
-	private double[][] values = {{1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1}};;//The values of the plot for all different channels
+	private double[][] values;//The values of the plot for all different channels
+	
 	private int nbSamples;//Amount of samples in the channel
 	private double samplesPerUnit;//The amount of samples required to make one unit (x axis)
 	private int nbPossiblePlots;//The amount of plots that can be created from the different channels
-	private int channelToPlot = 0;//The channel to use to make the plot
+	private int channelToPlot;//The channel to use to make the plot
 
 
 	private int xOffset;//The x offset of the origin
@@ -93,6 +101,7 @@ public class Plot extends JPanel {
 		setPreferredSize(new Dimension(ScreenSize.width * 3/4, ScreenSize.height * 1/2));
 		xOffset = ScreenSize.width * 3/4 * 1/2;
 		yOffset = ScreenSize.height * 1/2 * 1/2;
+		channelToPlot = 0;
 
 		SpringLayout springLayout = new SpringLayout();
 		setLayout(springLayout);
@@ -114,6 +123,7 @@ public class Plot extends JPanel {
 		springLayout.putConstraint(SpringLayout.NORTH, lbl_pixPerUY, 25, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, lbl_pixPerUY, 20, SpringLayout.WEST, this);
 		add(lbl_pixPerUY);
+		
 		
 		scaleAdjust();
 		
@@ -147,7 +157,13 @@ public class Plot extends JPanel {
 				repaint();
 			}
 		});
-
+		
+		btn_settings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (waveFormSet != null) waveFormSet.activate();
+				else JOptionPane.showMessageDialog(panel, "A file must be opened first");
+			}
+		});
 	}
 	/**
 	 * Uses the information from the wav file to create the waveform
@@ -160,11 +176,10 @@ public class Plot extends JPanel {
 				nbPossiblePlots = values.length;
 				nbSamples = values[channelToPlot].length;
 				
+				waveFormSet = new SettingWindow(nbPossiblePlots, this);
+				
 				repaint();
 			}
-		}
-		for (int i = 0; i < values[0].length; i++) {
-			values[0][i] = (i % 100) / 100000.0;
 		}
 	}
 
@@ -177,27 +192,73 @@ public class Plot extends JPanel {
 
 		paintAxes(g2d);
 		if (values != null) paintWaveForm(g2d);
-		paintWaveForm(g2d);
 	}
 	/**
 	 * Paints the waveform
 	 * @param g2d The graphics item
 	 */
 	public void paintWaveForm(Graphics2D g2d) {
-		int xIni = xOffset + 0;
-		int xFin;
-		int yIni = yOffset - (int) (values[0][0] * yPixelsPerUnit);
-		int yFin;
+		double samplesPerPixels = samplesPerUnit / xPixelsPerUnit;
 		
-		//Places the values on the graph
-		for (int xUnit = 1; xUnit < values[0].length; xUnit+=1) {
-			xFin = xOffset + (int) (xUnit * xPixelsPerUnit);
-			yFin = yOffset - (int) (values[0][xUnit] * yPixelsPerUnit);
-			g2d.drawLine(xIni, yIni, xFin, yFin);
-			xIni = xFin;
-			yIni = yFin;
+		int sampleOffset = 0;//The amount of samples that are off screen due the the xOffset
+		int remainingSamples = nbSamples;
+		if (xOffset < 0) {
+			sampleOffset = (int) Math.round(samplesPerPixels * -xOffset);
+			remainingSamples = nbSamples - sampleOffset;
 		}
-		
+		//Only draws if some part of the waveform is visible
+		if (remainingSamples > 0 && xOffset < getWidth()) {
+			double pixelIncrement = samplesPerPixels >= 1 ? 1 : 1/samplesPerPixels;//Increments the x axis by this amount for each iteration of the next loop
+			
+			int xIni;
+			int yIni;
+			int xFin;
+			int yFin;
+			
+			int sampleNb;
+			int sampleLength;
+			
+			if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
+				xIni = xOffset < 0 ? 0 : xOffset;
+				yIni = yOffset - (int) Math.round(values[channelToPlot][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
+				do {
+					xFin = xIni + 1;
+					
+					sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
+					sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
+					yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelToPlot], sampleNb, sampleLength) * yPixelsPerUnit);
+					
+					
+					g2d.drawLine(xIni, yIni, xFin, yFin);
+					
+					
+					xIni = xFin;
+					yIni = yFin;
+				} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixels) < nbSamples);
+			}
+			else {//Increment by more than one pixel each time. Increments the values by one each time
+				int iterationNb = 1;
+				
+				sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
+				yIni = yOffset - (int) Math.round(values[channelToPlot][sampleNb] * yPixelsPerUnit);
+				
+				int xInitialeValue = (int) Math.round(sampleNb / samplesPerPixels) + xOffset;
+				xIni = xInitialeValue;
+				
+				do {
+					xFin = xInitialeValue + (int) Math.round(iterationNb * pixelIncrement);
+					yFin = yOffset - (int) Math.round(values[channelToPlot][sampleNb + 1] * yPixelsPerUnit);
+					
+					g2d.drawLine(xIni, yIni, xFin, yFin);
+					
+					xIni = xFin;
+					yIni = yFin;
+					
+					iterationNb++;
+					sampleNb++;
+				} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
+			}
+		}
 		
 	}
 	/**
@@ -210,6 +271,10 @@ public class Plot extends JPanel {
 	public double meanValueOfSampleChunk(double[] values, int startingPoint, int nbSamples) {
 		double value = 0;
 		for (int index = 0; index < nbSamples; index++) {
+			if (startingPoint + index >= values.length) {//Breaks if it goes beyond the max amount of samples
+				nbSamples = index;
+				break;
+			}
 			value += values[startingPoint + index];
 		}
 		return value/nbSamples;
@@ -331,12 +396,7 @@ public class Plot extends JPanel {
 		adjustThresholdsTight("x");
 		
 		//Adjusts the x/y offset to keep the cursor at the same coordinates when zooming in/out
-		if (zoomDirection == 1) {//Zoom out
-			xOffset += Math.round((e.getX() - xOffset) * (1 - zoomPercentage));
-		}
-		else {//Zoom in
-			xOffset += Math.round((e.getX() - xOffset) * (1 - 1/zoomPercentage));
-		}
+		xOffset += Math.round((e.getX() - xOffset) * (1 - Math.pow(zoomPercentage, zoomDirection)));
 		
 		//Adjusts the scale if too zoomed in or out for the x axis
 		if (Math.pow(zoomPercentage, xZoomAmount) >= xZoomInThreshold) {//Too zoomed in
@@ -375,12 +435,7 @@ public class Plot extends JPanel {
 		adjustThresholdsTight("y");
 
 		//Adjusts the x/y offset to keep the cursor at the same coordinates when zooming in/out
-		if (zoomDirection == 1) {//Zoom out
-			yOffset += Math.round((e.getY() - yOffset) * (1 - zoomPercentage));
-		}
-		else {//Zoom in
-			yOffset += Math.round((e.getY() - yOffset) * (1 - 1/zoomPercentage));
-		}
+		yOffset += Math.round((e.getY() - yOffset) * (1 - Math.pow(zoomPercentage, zoomDirection)));
 
 		//Adjusts the scale if too zoomed in or out for the y axis
 		if (Math.pow(zoomPercentage, yZoomAmount) >= yZoomInThreshold) {//Too zoomed in
@@ -460,60 +515,52 @@ public class Plot extends JPanel {
 	 * @param wavInfo Object that contains the information about the wav file
 	 */
 	public void setWavInfo(WavInfo wavInfo) {
+		channelToPlot = 0;
 		this.wavInfo = wavInfo;
 	}
 	/**
 	 * Adjusts the scale depending on the gridsize value
 	 */
 	public void scaleAdjust() {
-		boolean finished;
+		boolean finished = false;
 		//Adjusts the scale if too zoomed in or out for both axes
 		do {
-			finished = true;
 			adjustThresholdsTight("x");
 			adjustThresholdsTight("y");
 			//y
 			if (Math.pow(zoomPercentage, yZoomAmount) >= yZoomInThreshold) {//Too zoomed in
 				if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
 					yDivAmountByFiveHalf++;
-					finished = false;
 				}
 				else {
 					yDivAmountByTwo++;
-					finished = false;
 				}
 			}
 			else if (Math.pow(zoomPercentage, yZoomAmount) < yZoomOutThreshold) {//Too zoomed out
 				if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
 					yDivAmountByFiveHalf--;
-					finished = false;
 				}
 				else {
 					yDivAmountByTwo--;
-					finished = false;
 				}
-			}
+			} else finished = true;
 			//x
 			if (Math.pow(zoomPercentage, xZoomAmount) >= xZoomInThreshold) {//Too zoomed in
 				if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
 					xDivAmountByFiveHalf++;
-					finished = false;
 				}
 				else {
 					xDivAmountByTwo++;
-					finished = false;
 				}
 			}
 			else if (Math.pow(zoomPercentage, xZoomAmount) < xZoomOutThreshold) {//Too zoomed out
 				if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
 					xDivAmountByFiveHalf--;
-					finished = false;
 				}
 				else {
 					xDivAmountByTwo--;
-					finished = false;
 				}
-			}
+			} else finished = true;
 		} while (!finished);
 
 		//Adjusts the scale
@@ -522,6 +569,15 @@ public class Plot extends JPanel {
 
 		repaint();
 	}
+	/**
+	 * Sets the channel to plot
+	 * @param channelToPlot The channel index
+	 */
+	public void setChannelToPlot(int channelToPlot) {
+		this.channelToPlot = channelToPlot - 1;
+		repaint();
+	}
+	
 }
 
 /**
