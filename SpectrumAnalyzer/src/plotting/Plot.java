@@ -34,13 +34,15 @@ public class Plot extends JPanel {
 	private SettingWindow waveFormSet;//The settings window
 	
 	private final double EPSILON = 1e-10;//Uncertainty value 
+	
+	private Color[] colors = {Color.GREEN, Color.YELLOW, Color.RED, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE}; 
 
 	private double[][] values;//The values of the plot for all different channels
 	
 	private int nbSamples;//Amount of samples in the channel
 	private double samplesPerUnit;//The amount of samples required to make one unit (x axis)
 	private int nbPossiblePlots;//The amount of plots that can be created from the different channels
-	private int channelToPlot;//The channel to use to make the plot
+	private int[] channelsToPlot;//The channel to use to make the plot
 
 
 	private int xOffset;//The x offset of the origin
@@ -91,7 +93,7 @@ public class Plot extends JPanel {
 	 */
 	public Plot() {
 		prepPlot();
-	}
+	}//End Plot
 
 	/**
 	 * Does the necessary to prepare the plot
@@ -101,7 +103,8 @@ public class Plot extends JPanel {
 		setPreferredSize(new Dimension(ScreenSize.width * 3/4, ScreenSize.height * 1/2));
 		xOffset = ScreenSize.width * 3/4 * 1/2;
 		yOffset = ScreenSize.height * 1/2 * 1/2;
-		channelToPlot = 0;
+		channelsToPlot = new int[1];
+		channelsToPlot[0] = 0;
 
 		SpringLayout springLayout = new SpringLayout();
 		setLayout(springLayout);
@@ -139,7 +142,8 @@ public class Plot extends JPanel {
 
 				repaint();
 			}
-		});
+		});//End addMouseMotionListener
+		
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -149,22 +153,24 @@ public class Plot extends JPanel {
 				if (e.getModifiersEx() == 1152) xOffset--;
 				repaint();
 			}
-		});
+		});//End addMouseListener
+		
 		//Handles zooming in the frame
 		addMouseWheelListener(new MouseWheelListener() {
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				rescale(e);
 				repaint();
 			}
-		});
+		});//End addMouseWheelListener
 		
 		btn_settings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (waveFormSet != null) waveFormSet.activate();
 				else JOptionPane.showMessageDialog(panel, "A file must be opened first");
 			}
-		});
-	}
+		});//End addActionListener
+	}//End prepPlot
+	
 	/**
 	 * Uses the information from the wav file to create the waveform
 	 */
@@ -174,25 +180,26 @@ public class Plot extends JPanel {
 			if (values != null) {
 				samplesPerUnit = wavInfo.getSampleRate();
 				nbPossiblePlots = values.length;
-				nbSamples = values[channelToPlot].length;
+				nbSamples = values[channelsToPlot[0]].length;
 				
+				if (waveFormSet != null) waveFormSet.close();
 				waveFormSet = new SettingWindow(nbPossiblePlots, this);
 				
 				repaint();
 			}
 		}
-	}
+	}//End loadWave
 
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2d.setColor(Color.GREEN);
 
 		paintAxes(g2d);
 		if (values != null) paintWaveForm(g2d);
-	}
+	}//End paintComponent
+	
 	/**
 	 * Paints the waveform
 	 * @param g2d The graphics item
@@ -207,60 +214,65 @@ public class Plot extends JPanel {
 			remainingSamples = nbSamples - sampleOffset;
 		}
 		//Only draws if some part of the waveform is visible
-		if (remainingSamples > 0 && xOffset < getWidth()) {
-			double pixelIncrement = samplesPerPixels >= 1 ? 1 : 1/samplesPerPixels;//Increments the x axis by this amount for each iteration of the next loop
-			
-			int xIni;
-			int yIni;
-			int xFin;
-			int yFin;
-			
-			int sampleNb;
-			int sampleLength;
-			
-			if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
-				xIni = xOffset < 0 ? 0 : xOffset;
-				yIni = yOffset - (int) Math.round(values[channelToPlot][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
-				do {
-					xFin = xIni + 1;
-					
-					sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
-					sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
-					yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelToPlot], sampleNb, sampleLength) * yPixelsPerUnit);
-					
-					
-					g2d.drawLine(xIni, yIni, xFin, yFin);
-					
-					
-					xIni = xFin;
-					yIni = yFin;
-				} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixels) < nbSamples);
-			}
-			else {//Increment by more than one pixel each time. Increments the values by one each time
-				int iterationNb = 1;
-				
-				sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
-				yIni = yOffset - (int) Math.round(values[channelToPlot][sampleNb] * yPixelsPerUnit);
-				
-				int xInitialeValue = (int) Math.round(sampleNb / samplesPerPixels) + xOffset;
-				xIni = xInitialeValue;
-				
-				do {
-					xFin = xInitialeValue + (int) Math.round(iterationNb * pixelIncrement);
-					yFin = yOffset - (int) Math.round(values[channelToPlot][sampleNb + 1] * yPixelsPerUnit);
-					
-					g2d.drawLine(xIni, yIni, xFin, yFin);
-					
-					xIni = xFin;
-					yIni = yFin;
-					
-					iterationNb++;
-					sampleNb++;
-				} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
+		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
+			for (int channel = 0; channel < channelsToPlot.length; channel++) {//Plots every selected channels
+				g2d.setColor(colors[channel]);
+				double pixelIncrement = samplesPerPixels >= 1 ? 1 : 1/samplesPerPixels;//Increments the x axis by this amount for each iteration of the next loop
+
+				int xIni;
+				int yIni;
+				int xFin;
+				int yFin;
+
+				int sampleNb;
+				int sampleLength;
+
+				if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
+					xIni = xOffset < 0 ? 0 : xOffset;
+					yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
+					do {
+						xFin = xIni + 1;
+
+						sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
+						sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
+						yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength) * yPixelsPerUnit);
+
+
+						g2d.drawLine(xIni, yIni, xFin, yFin);
+
+
+						xIni = xFin;
+						yIni = yFin;
+					} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixels) < nbSamples);
+				}
+				else {//Increment by more than one pixel each time. Increments the values by one each time
+					int iterationNb = 1;
+
+					sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
+					yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * yPixelsPerUnit);
+
+					double xInitialeValue = (sampleNb / samplesPerPixels) + xOffset;//Decides the initial x position based on the sample used
+					xIni = (int) xInitialeValue;
+
+					do {
+						xFin = (int) Math.round(xInitialeValue + iterationNb * pixelIncrement);
+						yFin = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb + 1] * yPixelsPerUnit);
+
+						g2d.drawLine(xIni, yIni, xFin, yFin);
+						
+						xIni = xFin;
+						yIni = yFin;
+
+						iterationNb++;
+						sampleNb++;
+					} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
+					System.out.println("");
+				}
 			}
 		}
 		
-	}
+	}//End paintWaveForm
+	
 	/**
 	 * Gets the average of a chunk of samples
 	 * @param values The array
@@ -515,7 +527,8 @@ public class Plot extends JPanel {
 	 * @param wavInfo Object that contains the information about the wav file
 	 */
 	public void setWavInfo(WavInfo wavInfo) {
-		channelToPlot = 0;
+		channelsToPlot = new int[1];
+		channelsToPlot[0] = 0;
 		this.wavInfo = wavInfo;
 	}
 	/**
@@ -573,8 +586,8 @@ public class Plot extends JPanel {
 	 * Sets the channel to plot
 	 * @param channelToPlot The channel index
 	 */
-	public void setChannelToPlot(int channelToPlot) {
-		this.channelToPlot = channelToPlot - 1;
+	public void setChannelToPlot(int[] channelToPlot) {
+		this.channelsToPlot = channelToPlot;
 		repaint();
 	}
 	

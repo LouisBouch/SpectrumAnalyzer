@@ -92,7 +92,7 @@ public class WavInfo {
 				subChunkData[i] = binInfo[offset + 8 + i];
 			}
 			try {
-				System.out.println("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
+//				System.out.println("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
 				Class<?> subChunk = Class.forName("subchunksAndInfo.Chunk_" + subChunkname.replaceAll("\\s", ""));
 				Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavInfo.class, boolean.class);
 				Object sub = constructor.newInstance(subChunkname, subChunkSize, subChunkData, this, paddingByte);
@@ -161,7 +161,7 @@ public class WavInfo {
 		Chunk_fact fact;
 		Chunk_fmt fmt;
 
-		int nbBlocks;
+		int nbBlocks;//Number of times a value is sampled into different channels
 		int sampleRate;
 		double time = 0;
 		try {
@@ -174,8 +174,8 @@ public class WavInfo {
 			}
 			else {
 				int totalBytes = data.getSubChunkSize();
-				int bytesPerSample = fmt.getBlockAlign();
-				nbBlocks = totalBytes / bytesPerSample;
+				int bytesPerBlock = fmt.getBlockAlign();
+				nbBlocks = totalBytes / bytesPerBlock;
 			}
 			time = (nbBlocks * 1.0) / sampleRate;
 

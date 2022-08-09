@@ -53,7 +53,7 @@ public class WavFileAnalyzerMAINPANEL extends JPanel {
 		add(spectrumAnalyzerPlot, "cell 7 5 1 5");
 
 		WavInfoPanel wavInfoPanel = new WavInfoPanel();
-		this.add(wavInfoPanel, "cell 0 0 7 5");
+		add(wavInfoPanel, "cell 0 0 7 5");
 
 		JButton btn_getFile = new JButton("Search for wav file");
 		btn_getFile.setFocusable(false);
