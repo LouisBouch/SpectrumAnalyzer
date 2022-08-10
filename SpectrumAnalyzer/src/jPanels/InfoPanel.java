@@ -17,7 +17,7 @@ import javax.swing.border.EtchedBorder;
 
 import tools.ScreenSize;
 
-public class WavInfoPanel extends JPanel {
+public class InfoPanel extends JPanel {
 
 	private static final long serialVersionUID = -3472014902506067567L;
 	private JPanel panel = this;
@@ -27,7 +27,7 @@ public class WavInfoPanel extends JPanel {
 	private JLabel lbl_textInfo;
 	private Color backGroundColor = new Color(50, 55, 80);
 	
-	public WavInfoPanel() {
+	public InfoPanel() {
 		setBackground(backGroundColor);
 		setPreferredSize(new Dimension(width, height));
 		

@@ -183,7 +183,7 @@ public class Plot extends JPanel {
 				nbSamples = values[channelsToPlot[0]].length;
 				
 				if (waveFormSet != null) waveFormSet.close();
-				waveFormSet = new SettingWindow(nbPossiblePlots, this);
+				waveFormSet = new SettingWindow(this);
 				
 				repaint();
 			}
@@ -216,7 +216,8 @@ public class Plot extends JPanel {
 		//Only draws if some part of the waveform is visible
 		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
 			for (int channel = 0; channel < channelsToPlot.length; channel++) {//Plots every selected channels
-				g2d.setColor(colors[channel]);
+//				g2d.setColor(colors[channel]);//First channel gets first color
+				g2d.setColor(colors[channelsToPlot[channel] % colors.length]);//Channels keep their color
 				double pixelIncrement = samplesPerPixels >= 1 ? 1 : 1/samplesPerPixels;//Increments the x axis by this amount for each iteration of the next loop
 
 				int xIni;
@@ -523,15 +524,6 @@ public class Plot extends JPanel {
 	}
 
 	/**
-	 * Sets the info of the wav file
-	 * @param wavInfo Object that contains the information about the wav file
-	 */
-	public void setWavInfo(WavInfo wavInfo) {
-		channelsToPlot = new int[1];
-		channelsToPlot[0] = 0;
-		this.wavInfo = wavInfo;
-	}
-	/**
 	 * Adjusts the scale depending on the gridsize value
 	 */
 	public void scaleAdjust() {
@@ -590,6 +582,38 @@ public class Plot extends JPanel {
 		this.channelsToPlot = channelToPlot;
 		repaint();
 	}
+	/**
+	 * Sets the info of the wav file
+	 * @param wavInfo Object that contains the information about the wav file
+	 */
+	public void setWavInfo(WavInfo wavInfo) {
+		channelsToPlot = new int[1];
+		channelsToPlot[0] = 0;
+		this.wavInfo = wavInfo;
+	}
+	/**
+	 * Gets the amount of possible plots
+	 * @return Possible plots
+	 */
+	public int getNbPossiblePlots() {
+		return nbPossiblePlots;
+	}
+	/**
+	 * Gets the information about the wav file
+	 * @return The wavInfo variable
+	 */
+	public WavInfo getWavInfo() {
+		return wavInfo;
+	}
+	/**
+	 * Gets the color array that draws the plots
+	 * @return The color array
+	 */
+	public Color[] getColors() {
+		return colors;
+	}
+	
+	
 	
 }
 

@@ -17,6 +17,8 @@ public class WavInfo {
 	
 	private double[][] channelSeparatedData;
 	private int sampleRate;
+	private String channelsUsed;
+	private String channelsUsedLongNames;
 	
 	//Constructor
 	public WavInfo(byte[] binInfo, String fileName) {
@@ -29,7 +31,11 @@ public class WavInfo {
 			int channels = fmt.getChannels();
 			int validBits;
 			
-			if (fmt.getFormat() == 65534) validBits = Integer.parseInt(fmt.getFormatInfo()[1]);
+			if (fmt.getFormat() == 65534) {
+				validBits = Integer.parseInt(fmt.getFormatInfo()[0]);
+				channelsUsed = fmt.getFormatInfo()[1];
+				channelsUsedLongNames = fmt.getFormatInfo()[2];
+			}
 			else validBits = fmt.getBitsPerSample();
 			
 			Chunk_data data = (Chunk_data) subChunks.get("subchunksAndInfo.Chunk_data");
@@ -37,6 +43,7 @@ public class WavInfo {
 			
 			channelSeparatedData = handlingRawData(fm, validBits, channels, rawData);
 			sampleRate = fmt.getSampleRate();
+			
 		}
 		catch (ClassCastException e) {
 			System.out.println(e);
@@ -213,6 +220,21 @@ public class WavInfo {
 	public int getSampleRate() {
 		return sampleRate;
 	}
+	/**
+	 * Gets the name of the channels used
+	 * @return The channels used
+	 */
+	public String getChannelsUsed() {
+		return channelsUsed;
+	}
+	/**
+	 * Gets the name of the channels used with long names
+	 * @return The channels used with long names
+	 */
+	public String getChannelsUsedLongNames() {
+		return channelsUsedLongNames;
+	}
+	
 	
 	
 }

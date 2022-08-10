@@ -1,5 +1,7 @@
 package subchunksAndInfo;
 
+import java.util.HashMap;
+
 import tools.ByteManipulationTools;
 
 public class Chunk_fmt extends SubChunks {
@@ -13,11 +15,23 @@ public class Chunk_fmt extends SubChunks {
 	private int blockAlign;
 
 	private String info;
-	private String[] formatInfo;//first place in the array is the format and the subsequent information is relevant to the format
+	/**Additional information depending on the format used;<br/>
+	 * 65534:<br/>
+	 * 0 -> valid bits per samples<br/>
+	 * 1 -> channel mask<br/>
+	 * 2 -> actual format<br/>
+	 * 
+	 * 
+	 */
+	private String[] formatInfo = null;
+	
+	
+	private HashMap<Integer, String> formats = new HashMap<Integer, String>();
 	
 
 	public Chunk_fmt(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
+		formatInitializer();
 		setInfo();
 	}
 	
@@ -34,40 +48,31 @@ public class Chunk_fmt extends SubChunks {
 		
 		format = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 2);
 		dataFormat = format;
-		info += "AudioFormat: ";
-		info += formatFinder(format);
+		info += "AudioFormat: " + format + " -> " + formatFinder(format);
 		
 		//Gets the number of channels
-		info += "<br/>";
 		channels = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 2, 2);
-		info += "Number of channels: " + channels;
+		info += "<br/>Number of channels: " + channels;
 
 		//Block align (Bytes for all samples)
-		info += "<br/>";
 		blockAlign = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 12, 2);
-		info += "Bytes per block: " + blockAlign + " bytes";
+		info += "<br/>Bytes per block: " + blockAlign + " bytes";
 
 		//Bits per sample
-		info += "<br/>";
 		bitsPerSample = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 14, 2);
-		info += "Bits per sample: " + bitsPerSample + " bits";
+		info += "<br/>Bits per sample: " + bitsPerSample + " bits";
 		
 		//Gets the sample rate
-		info += "<br/>";
 		sampleRate = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 4, 4);
-		info += "Sample rate: " + (sampleRate / 10)/100.0 + " kHz";
+		info += "<br/>Sample rate: " + (sampleRate / 10)/100.0 + " kHz";
 		
 		//Gets the bit rate
-		info += "<br/>";
 		bitRate = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 8, 4) * 8;
-		info += "Bit rate: " + (bitRate / 10)/100.0 + " kb/s";
+		info += "<br/>Bit rate: " + (bitRate / 10)/100.0 + " kb/s";
 		
 		//Extra information for none integer PCM formats
 		if (format != 1 && this.getSubChunkSize() > 16) {
-			info += "<br/>";
-			formatInfo = formatHandling(temp, info);
-			info += formatInfo[0];
-			formatInfo[0] = format + "";
+			formatHandling(temp);
 		}
 		
 		this.setInfo(info);
@@ -75,42 +80,40 @@ public class Chunk_fmt extends SubChunks {
 	/**
 	 * Handles extra information added by different formats
 	 */
-	public String[] formatHandling(int[] temp, String info) {
-		String[] allInfo = null;
-		String extraInfo = "";
-		extraInfo += "<br/>";
+	public void formatHandling(int[] temp) {
+		info += "<br/><br/><i>Format specific information:</i>";
+		
 		if (format == 2) {
-			allInfo = new String[1];
+			formatInfo = new String[1];
 		}
 		else if (format == 3) {
-			allInfo = new String[1];
+			formatInfo = new String[1];
 		}
 		else if (format == 6) {
-			allInfo = new String[1];
+			formatInfo = new String[1];
 		}
 		else if (format == 7) {
-			allInfo = new String[1];
+			formatInfo = new String[1];
 		}
 		else if (format == 65534) {
-			allInfo = new String[4];
-			/*String[] speakersInfo = {"Front left", "Front right", "Front center", "Low frequency", "Back left", "Back right",
+			formatInfo = new String[4];
+			String[] speakersInfoLongName = {"Front left", "Front right", "Front center", "Low frequency", "Back left", "Back right",
 					"Front left of center", "Front right of center", "Back center", "Side left", "Side right", "Top center",
-					"Top front left", "Top front center", "Top front right", "Top back left", "Top back center", "Top back right"};*/
+					"Top front left", "Top front center", "Top front right", "Top back left", "Top back center", "Top back right"};
 			String[] speakersInfo = {"FL", "FR", "FC", "LowFreq", "BL", "BR",
 					"FLofCen", "FRofCen", "BC", "SL", "SR", "TC",
 					"TFL", "TFC", "TFR", "TBL", "TBC", "TBR"};
 			
 			//Valid bits
-			allInfo[1] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
-			extraInfo += "Valid bits per sample: " + allInfo[1];
+			formatInfo[0] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
+			info += "<br/>Valid bits per sample: " + formatInfo[0];
 			
 			//Channels layout
-			extraInfo += "<br/>";
-			allInfo[2] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 20, 4);
-			extraInfo += "Channels layout: ";
-			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(allInfo[2]));
+			String channelsByteValue = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 20, 4);
+			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
 			int assignedChannels = 0;
 			String channelsLocation = "";
+			String channelsLocationLongName = "";
 			//Assigns channels to speakers
 			for (int i = 0; i < bits.length; i++) {
 				if (assignedChannels < channels) {
@@ -118,26 +121,26 @@ public class Chunk_fmt extends SubChunks {
 						assignedChannels++;
 						/*channelsLocation += "Channel " + (i+1) + " = " + speakersInfo[i] + "; ";*/
 						channelsLocation += speakersInfo[i] + " ";
+						channelsLocationLongName += speakersInfoLongName[i] + ".";
 						
 					}
 				}
 				else break;
 			}
 			if (assignedChannels != 0) {
-				allInfo[2] = channelsLocation;
-				extraInfo += allInfo[2].substring(0, allInfo[2].length() - 1);
+				formatInfo[1] = channelsLocation;
+				formatInfo[2] = channelsLocationLongName;
+				info += "<br/>Channels layout: " + formatInfo[1].substring(0, formatInfo[1].length() - 1);
 			}
 			
 			//GUID
-			extraInfo += "<br/>";
-			allInfo[3] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
-			dataFormat = Integer.parseInt(allInfo[3]);
-			extraInfo += "Sub format GUID: " + formatFinder(Integer.parseInt(allInfo[3]));
+			formatInfo[3] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
+			dataFormat = Integer.parseInt(formatInfo[3]);
+			int format = Integer.parseInt(formatInfo[3]);
+			info += "<br/>Sub format GUID: " + format + "  -> " + formatFinder(format);
 		}
-		else return null;
-		allInfo[0] = "<br/><i>Format specific information:</i>" + extraInfo;
-		return allInfo;
-		
+		else return;
+//		formatInfo[0] = "<br/><i>Format specific information:</i>" + extraInfo;
 	}
 	/**
 	 * Returns the format corresponding to the integer
@@ -145,16 +148,20 @@ public class Chunk_fmt extends SubChunks {
 	 * @return The actual format
 	 */
 	public String formatFinder(int f) {
-		String format;
-		if (f == 1) format = f + " -> integer PCM";
-		else if (f == 2) format = f + " -> ADPCM";
-		else if (f == 3) format = f + " -> floating point PCM";
-		else if (f == 6) format = f + " -> A-law";
-		else if (f == 7) format = f + " -> µ-law";
-		else if (f == 80) format = f + " -> MPEG";
-		else if (f == 65534) format = f + " -> WAVE_FORMAT_EXTENSIBLE";
-		else format = f + " -> UNKNOWN FORMAT";
-		return format;		
+		String format = formats.get(f);
+		return format == null ? "UNKNOWN FORMAT" : format;	
+	}
+	/**
+	 * Initializes the hashmap containing the different formats
+	 */
+	public void formatInitializer() {
+		formats.put(1, "integer PCM");
+		formats.put(2, "ADPCM");
+		formats.put(3, "floating point PCM");
+		formats.put(6, "A-law");
+		formats.put(7, "µ-law");
+		formats.put(80, "MPEG");
+		formats.put(65534, "WAVE_FORMAT_EXTENSIBLE");
 	}
 	//Getters for the different properties of the fmt subchunk
 	public int getFormat() {
@@ -172,14 +179,23 @@ public class Chunk_fmt extends SubChunks {
 	public int getBitRate() {
 		return bitRate;
 	}
-	public String[] getFormatInfo() {
-		return formatInfo;
-	}
 	public int getChannels() {
 		return channels;
 	}
 	public int getBlockAlign() {
 		return blockAlign;
+	}
+	/**
+	 * Returns additional format info
+	 * @return Additional information depending on the format used;<br/>
+	 * format 65534:<br/>
+	 * 0 -> valid bits per samples<br/>
+	 * 1 -> channel mask<br/>
+	 * 2 -> channel mask long names<br/>
+	 * 3 -> actual format<br/>
+	 */
+	public String[] getFormatInfo() {
+		return formatInfo;
 	}
 
 	@Override

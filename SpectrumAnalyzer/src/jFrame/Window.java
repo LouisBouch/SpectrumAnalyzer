@@ -12,7 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import jPanels.WavFileAnalyzerMAINPANEL;
+import jPanels.MainWindow;
 
 public class Window extends JFrame {
 
@@ -62,7 +62,7 @@ public class Window extends JFrame {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		contentPane.setBackground(new Color(0, 0, 0));
 		
-		WavFileAnalyzerMAINPANEL analyzer = new WavFileAnalyzerMAINPANEL();
+		MainWindow analyzer = new MainWindow();
 		contentPane.add(analyzer);
 		
 		setContentPane(contentPane);

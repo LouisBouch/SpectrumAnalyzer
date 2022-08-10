@@ -21,7 +21,7 @@ import plotting.Plot;
 import subchunksAndInfo.WavInfo;
 import tools.ScreenSize;
 
-public class WavFileAnalyzerMAINPANEL extends JPanel {
+public class MainWindow extends JPanel {
 
 	private static final long serialVersionUID = 9006568226542522515L;
 
@@ -38,7 +38,7 @@ public class WavFileAnalyzerMAINPANEL extends JPanel {
 	/**
 	 * Creates the window that contains the wave information
 	 */
-	public WavFileAnalyzerMAINPANEL() {		
+	public MainWindow() {		
 		setBounds(0, 0, ScreenSize.width , ScreenSize.height - 63);	
 		setBackground(new Color(80, 85, 110));
 		setLayoutDim();
@@ -52,7 +52,7 @@ public class WavFileAnalyzerMAINPANEL extends JPanel {
 		plots.add(spectrumAnalyzerPlot);
 		add(spectrumAnalyzerPlot, "cell 7 5 1 5");
 
-		WavInfoPanel wavInfoPanel = new WavInfoPanel();
+		InfoPanel wavInfoPanel = new InfoPanel();
 		add(wavInfoPanel, "cell 0 0 7 5");
 
 		JButton btn_getFile = new JButton("Search for wav file");
