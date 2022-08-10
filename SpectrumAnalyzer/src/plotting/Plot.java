@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
+import subchunksAndInfo.Chunk_fmt;
 import subchunksAndInfo.WavInfo;
 import tools.ScreenSize;
 import java.awt.event.ActionListener;
@@ -178,7 +179,7 @@ public class Plot extends JPanel {
 		if (wavInfo != null) {
 			values = wavInfo.getChannelSeparatedData();
 			if (values != null) {
-				samplesPerUnit = wavInfo.getSampleRate();
+				samplesPerUnit = ((Chunk_fmt) wavInfo.getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getSampleRate();
 				nbPossiblePlots = values.length;
 				nbSamples = values[channelsToPlot[0]].length;
 				

@@ -16,9 +16,6 @@ public class WavInfo {
 	private String fileInfo;
 	
 	private double[][] channelSeparatedData;
-	private int sampleRate;
-	private String channelsUsed;
-	private String channelsUsedLongNames;
 	
 	//Constructor
 	public WavInfo(byte[] binInfo, String fileName) {
@@ -26,15 +23,15 @@ public class WavInfo {
 		this.fileName = fileName;
 		getInfo();
 		try {
-			Chunk_fmt fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");//Could place the info in an array to remove the need of a cast
+			Chunk_fmt fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");
 			int fm = fmt.getDataFormat();
 			int channels = fmt.getChannels();
 			int validBits;
 			
 			if (fmt.getFormat() == 65534) {
-				validBits = Integer.parseInt(fmt.getFormatInfo()[0]);
-				channelsUsed = fmt.getFormatInfo()[1];
-				channelsUsedLongNames = fmt.getFormatInfo()[2];
+				validBits = fmt.getValidBitsPerSample();
+//				channelsUsed = fmt.getChannelsLocation();
+//				channelsUsedLongNames = fmt.getChannelsLocationLongName();
 			}
 			else validBits = fmt.getBitsPerSample();
 			
@@ -42,7 +39,7 @@ public class WavInfo {
 			byte[] rawData = data.getData();
 			
 			channelSeparatedData = handlingRawData(fm, validBits, channels, rawData);
-			sampleRate = fmt.getSampleRate();
+//			sampleRate = fmt.getSampleRate();
 			
 		}
 		catch (ClassCastException e) {
@@ -213,27 +210,35 @@ public class WavInfo {
 	public double[][] getChannelSeparatedData() {
 		return channelSeparatedData;
 	}
+//	/**
+//	 * Gets the sampling rate of the file
+//	 * @return The sampling rate
+//	 */
+//	public int getSampleRate() {
+//		return sampleRate;
+//	}
+//	/**
+//	 * Gets the name of the channels used
+//	 * @return The channels used
+//	 */
+//	public String getChannelsUsed() {
+//		return channelsUsed;
+//	}
+//	/**
+//	 * Gets the name of the channels used with long names
+//	 * @return The channels used with long names
+//	 */
+//	public String getChannelsUsedLongNames() {
+//		return channelsUsedLongNames;
+//	}
 	/**
-	 * Gets the sampling rate of the file
-	 * @return The sampling rate
+	 * Gets all the subchunks
+	 * @return The subchunks
 	 */
-	public int getSampleRate() {
-		return sampleRate;
+	public LinkedHashMap<String, SubChunks> getSubChunks() {
+		return subChunks;
 	}
-	/**
-	 * Gets the name of the channels used
-	 * @return The channels used
-	 */
-	public String getChannelsUsed() {
-		return channelsUsed;
-	}
-	/**
-	 * Gets the name of the channels used with long names
-	 * @return The channels used with long names
-	 */
-	public String getChannelsUsedLongNames() {
-		return channelsUsedLongNames;
-	}
+	
 	
 	
 	

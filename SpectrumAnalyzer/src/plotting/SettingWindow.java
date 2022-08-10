@@ -22,12 +22,15 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import subchunksAndInfo.Chunk_fmt;
 
 public class SettingWindow extends JFrame {
 
@@ -36,7 +39,6 @@ public class SettingWindow extends JFrame {
 	private Plot parent;
 	
 	private int possiblePlots;
-	private boolean detailedPlot = false;
 	private String[] detailedPossiblePlots;
 	private int selectedPlot = 1;
 	private int[] selectedPlots;
@@ -48,16 +50,14 @@ public class SettingWindow extends JFrame {
 		this.parent = parent;
 		this.possiblePlots = parent.getNbPossiblePlots();
 		//Sets detailedPossiblePlots
-		String singleStringDetailedPossiblePlots = parent.getWavInfo().getChannelsUsedLongNames();
-		if (singleStringDetailedPossiblePlots != null) detailedPlot = true;
-		if (detailedPlot) {
-			detailedPossiblePlots = new String[possiblePlots];
-			for (int channel = 0; channel < possiblePlots; channel++) {
-				detailedPossiblePlots[channel] = singleStringDetailedPossiblePlots.substring(0, singleStringDetailedPossiblePlots.indexOf('.'));
-				singleStringDetailedPossiblePlots = singleStringDetailedPossiblePlots.substring(singleStringDetailedPossiblePlots.indexOf('.') + 1, singleStringDetailedPossiblePlots.length());
-			}
-			detailedPossiblePlots[possiblePlots - 1] += " ";
+		String singleStringDetailedPossiblePlots = ((Chunk_fmt) parent.getWavInfo().getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getChannelsLocationLongName();
+		detailedPossiblePlots = new String[possiblePlots];
+		for (int channel = 0; channel < possiblePlots; channel++) {
+			if (singleStringDetailedPossiblePlots == "") break;
+			detailedPossiblePlots[channel] = singleStringDetailedPossiblePlots.substring(0, singleStringDetailedPossiblePlots.indexOf('.'));
+			singleStringDetailedPossiblePlots = singleStringDetailedPossiblePlots.substring(singleStringDetailedPossiblePlots.indexOf('.') + 1, singleStringDetailedPossiblePlots.length());
 		}
+		detailedPossiblePlots[possiblePlots - 1] += " ";
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
@@ -125,38 +125,41 @@ public class SettingWindow extends JFrame {
 		scrollPane_channels.setViewportView(list_channels);
 		pane.add(scrollPane_channels);
 
-		if (detailedPlot) {//Adds a legend if there are multiple channels described by the 65534 format
-			JLabel label_legend = new JLabel("<html> <B>Legend:</B>");
-			Color color;
-			String red;
-			String green;
-			String blue;
-			for (int channel = 1; channel <= possiblePlots; channel++) {
-				color = parent.getColors()[channel - 1];
-				red = Integer.toHexString(color.getRed());
-				green = Integer.toHexString(color.getGreen());
-				blue = Integer.toHexString(color.getBlue());
-				String hexColorFont = "<font color=#" + (red.length() == 1 ? (red = "0" + red) : red) + (green.length() == 1 ? (green = "0" + green) : green) + (blue.length() == 1 ? (blue = "0" + blue) : blue) + ">";
-				label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + detailedPossiblePlots[channel - 1]);
-			}
-			label_legend.setFont(new Font("Tahoma", Font.PLAIN, 15));
-			label_legend.setForeground(Color.BLACK);
-			label_legend.setBackground(pane.getBackground());
-			label_legend.setText(label_legend.getText() + "<html>");
-			label_legend.setVerticalAlignment(SwingConstants.TOP);
-
-			JScrollPane scrollPane_channelsLegend = new JScrollPane();
-			sl_contentPane.putConstraint(SpringLayout.NORTH, scrollPane_channelsLegend, 5, SpringLayout.SOUTH, scrollPane_channels);
-			sl_contentPane.putConstraint(SpringLayout.WEST, scrollPane_channelsLegend, 0, SpringLayout.WEST, scrollPane_channels);
-			sl_contentPane.putConstraint(SpringLayout.EAST, scrollPane_channelsLegend, 0, SpringLayout.EAST, scrollPane_channels);
-			scrollPane_channelsLegend.setOpaque(false);
-			scrollPane_channelsLegend.getViewport().setOpaque(false);
-			scrollPane_channelsLegend.setBorder(new LineBorder(new Color(70, 75, 100)));
-			int scrollPaneHeight = (getHeight() * 11/20 - 5 < label_legend.getPreferredSize().getHeight()) ? (getHeight() * 11/20) : (int) label_legend.getPreferredSize().getHeight() + 5;
-			scrollPane_channelsLegend.setPreferredSize(new Dimension(lbl_channels.getPreferredSize().width, scrollPaneHeight));
-			scrollPane_channelsLegend.setViewportView(label_legend);
-			pane.add(scrollPane_channelsLegend);
+		JLabel label_legend = new JLabel("<html> <B>Legend:</B>");
+		Color color;
+		String red;
+		String green;
+		String blue;
+		for (int channel = 1; channel <= possiblePlots; channel++) {
+			color = parent.getColors()[channel - 1];
+			red = Integer.toHexString(color.getRed());
+			green = Integer.toHexString(color.getGreen());
+			blue = Integer.toHexString(color.getBlue());
+			String hexColorFont = "<font color=#" + (red.length() == 1 ? (red = "0" + red) : red) + (green.length() == 1 ? (green = "0" + green) : green) + (blue.length() == 1 ? (blue = "0" + blue) : blue) + ">";
+			label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + detailedPossiblePlots[channel - 1]);
 		}
+		label_legend.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		label_legend.setForeground(Color.BLACK);
+		label_legend.setBackground(pane.getBackground());
+		label_legend.setText(label_legend.getText() + "<html>");
+		label_legend.setVerticalAlignment(SwingConstants.TOP);
+
+		UIManager.put("ScrollBar.width", 15);
+		JScrollPane scrollPane_channelsLegend = new JScrollPane();
+		sl_contentPane.putConstraint(SpringLayout.NORTH, scrollPane_channelsLegend, 5, SpringLayout.SOUTH, scrollPane_channels);
+		sl_contentPane.putConstraint(SpringLayout.WEST, scrollPane_channelsLegend, 0, SpringLayout.WEST, scrollPane_channels);
+		sl_contentPane.putConstraint(SpringLayout.EAST, scrollPane_channelsLegend, 0, SpringLayout.EAST, scrollPane_channels);
+		scrollPane_channelsLegend.setOpaque(false);
+		scrollPane_channelsLegend.getViewport().setOpaque(false);
+		scrollPane_channelsLegend.setBorder(new LineBorder(new Color(70, 75, 100)));
+
+		int scrollBarAdjustement = 5;
+		if (label_legend.getPreferredSize().getWidth() > lbl_channels.getPreferredSize().width) scrollBarAdjustement += 12;//Takes into account the vertical scroll bar that will get in the way
+		int scrollPaneHeight = (getHeight() * 11/20 - scrollBarAdjustement < label_legend.getPreferredSize().getHeight()) ? (getHeight() * 11/20) : (int) label_legend.getPreferredSize().getHeight() + scrollBarAdjustement;
+
+		scrollPane_channelsLegend.setPreferredSize(new Dimension(lbl_channels.getPreferredSize().width, scrollPaneHeight));
+		scrollPane_channelsLegend.setViewportView(label_legend);
+		pane.add(scrollPane_channelsLegend);
 
 		
 

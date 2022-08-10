@@ -9,21 +9,31 @@ public class Chunk_fmt extends SubChunks {
 	private int format;
 	private int dataFormat;
 	private int bitsPerSample;
+	private int validBitsPerSample;
 	private int sampleRate;
 	private int bitRate;
 	private int channels;
 	private int blockAlign;
+	
+	/**
+	 * Variable containing the successive abbreviated channel names
+	 */
+	private String channelsLocation = "";
+	/**
+	 * Variable containing the successive non-abbreviated channel names
+	 */
+	private String channelsLocationLongName = "";
 
 	private String info;
 	/**Additional information depending on the format used;<br/>
 	 * 65534:<br/>
-	 * 0 -> valid bits per samples<br/>
+	 * 0 -> valid bits per sample<br/>
 	 * 1 -> channel mask<br/>
 	 * 2 -> actual format<br/>
 	 * 
 	 * 
 	 */
-	private String[] formatInfo = null;
+//	private String[] formatInfo = null;
 	
 	
 	private HashMap<Integer, String> formats = new HashMap<Integer, String>();
@@ -60,6 +70,7 @@ public class Chunk_fmt extends SubChunks {
 
 		//Bits per sample
 		bitsPerSample = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 14, 2);
+		validBitsPerSample = bitsPerSample;
 		info += "<br/>Bits per sample: " + bitsPerSample + " bits";
 		
 		//Gets the sample rate
@@ -74,7 +85,17 @@ public class Chunk_fmt extends SubChunks {
 		if (format != 1 && this.getSubChunkSize() > 16) {
 			formatHandling(temp);
 		}
-		
+		//Assigns the channels if they haven't been assigned
+		if (channelsLocationLongName == "" && channelsLocation == "") {
+			if (channels == 1) {
+				channelsLocationLongName = "Left and right.";
+				channelsLocation = "LR";
+			}
+			if (channels == 2) {
+				channelsLocationLongName = "Left.Right.";
+				channelsLocation = "FL FR";
+			}
+		}
 		this.setInfo(info);
 	}
 	/**
@@ -84,19 +105,19 @@ public class Chunk_fmt extends SubChunks {
 		info += "<br/><br/><i>Format specific information:</i>";
 		
 		if (format == 2) {
-			formatInfo = new String[1];
+//			formatInfo = new String[1];
 		}
 		else if (format == 3) {
-			formatInfo = new String[1];
+//			formatInfo = new String[1];
 		}
 		else if (format == 6) {
-			formatInfo = new String[1];
+//			formatInfo = new String[1];
 		}
 		else if (format == 7) {
-			formatInfo = new String[1];
+//			formatInfo = new String[1];
 		}
 		else if (format == 65534) {
-			formatInfo = new String[4];
+//			formatInfo = new String[4];
 			String[] speakersInfoLongName = {"Front left", "Front right", "Front center", "Low frequency", "Back left", "Back right",
 					"Front left of center", "Front right of center", "Back center", "Side left", "Side right", "Top center",
 					"Top front left", "Top front center", "Top front right", "Top back left", "Top back center", "Top back right"};
@@ -105,39 +126,32 @@ public class Chunk_fmt extends SubChunks {
 					"TFL", "TFC", "TFR", "TBL", "TBC", "TBR"};
 			
 			//Valid bits
-			formatInfo[0] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
-			info += "<br/>Valid bits per sample: " + formatInfo[0];
+			validBitsPerSample = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
+			info += "<br/>Valid bits per sample: " + validBitsPerSample;
 			
 			//Channels layout
 			String channelsByteValue = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 20, 4);
 			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
-			int assignedChannels = 0;
-			String channelsLocation = "";
-			String channelsLocationLongName = "";
 			//Assigns channels to speakers
-			for (int i = 0; i < bits.length; i++) {
-				if (assignedChannels < channels) {
-					if (bits[bits.length - 1 - i] != 0) {
-						assignedChannels++;
+			int assignedChannel;
+			for (assignedChannel = 0; assignedChannel < bits.length; assignedChannel++) {
+				if (assignedChannel < channels) {
+					if (bits[bits.length - 1 - assignedChannel] != 0) {
 						/*channelsLocation += "Channel " + (i+1) + " = " + speakersInfo[i] + "; ";*/
-						channelsLocation += speakersInfo[i] + " ";
-						channelsLocationLongName += speakersInfoLongName[i] + ".";
+						channelsLocation += speakersInfo[assignedChannel] + " ";
+						channelsLocationLongName += speakersInfoLongName[assignedChannel] + ".";
 						
 					}
 				}
 				else break;
 			}
-			if (assignedChannels != 0) {
-				formatInfo[1] = channelsLocation;
-				formatInfo[2] = channelsLocationLongName;
-				info += "<br/>Channels layout: " + formatInfo[1].substring(0, formatInfo[1].length() - 1);
+			if (assignedChannel != 0) {
+				info += "<br/>Channels layout: " + channelsLocation.substring(0, channelsLocation.length() - 1);
 			}
 			
 			//GUID
-			formatInfo[3] = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
-			dataFormat = Integer.parseInt(formatInfo[3]);
-			int format = Integer.parseInt(formatInfo[3]);
-			info += "<br/>Sub format GUID: " + format + "  -> " + formatFinder(format);
+			dataFormat = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
+			info += "<br/>Sub format GUID: " + dataFormat + "  -> " + formatFinder(dataFormat);
 		}
 		else return;
 //		formatInfo[0] = "<br/><i>Format specific information:</i>" + extraInfo;
@@ -185,18 +199,28 @@ public class Chunk_fmt extends SubChunks {
 	public int getBlockAlign() {
 		return blockAlign;
 	}
-	/**
-	 * Returns additional format info
-	 * @return Additional information depending on the format used;<br/>
-	 * format 65534:<br/>
-	 * 0 -> valid bits per samples<br/>
-	 * 1 -> channel mask<br/>
-	 * 2 -> channel mask long names<br/>
-	 * 3 -> actual format<br/>
-	 */
-	public String[] getFormatInfo() {
-		return formatInfo;
+	public int getValidBitsPerSample() {
+		return validBitsPerSample;
 	}
+	public String getChannelsLocation() {
+		return channelsLocation;
+	}
+	public String getChannelsLocationLongName() {
+		return channelsLocationLongName;
+	}
+	
+//	/**
+//	 * Returns additional format info
+//	 * @return Additional information depending on the format used;<br/>
+//	 * format 65534:<br/>
+//	 * 0 -> valid bits per samples<br/>
+//	 * 1 -> channel mask<br/>
+//	 * 2 -> channel mask long names<br/>
+//	 * 3 -> actual format<br/>
+//	 */
+//	public String[] getFormatInfo() {
+//		return formatInfo;
+//	}
 
 	@Override
 	public String toString() {
