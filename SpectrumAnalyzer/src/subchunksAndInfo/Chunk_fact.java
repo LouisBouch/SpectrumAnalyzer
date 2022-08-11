@@ -17,11 +17,11 @@ public class Chunk_fact extends SubChunks{
 		info = "";
 		int[] temp = new int[this.getSubChunkSize()];
 		for (int i = 0; i < this.getSubChunkSize(); i++) {
-			if (this.getData()[i] < 0) temp[i] = ByteManipulationTools.unsignedVersionOfByteTwosComplement(this.getData()[i]);
+			if (this.getData()[i] < 0) temp[i] = (int) ByteManipulationTools.unsignedVersionOfByteTwosComplement(this.getData()[i]);
 			else temp[i] = this.getData()[i];
 		}
 		
-		nbSampleFrames = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 4);
+		nbSampleFrames = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 4);
 		info += "Number of sample frames: " + nbSampleFrames;
 		
 		this.setInfo(info);

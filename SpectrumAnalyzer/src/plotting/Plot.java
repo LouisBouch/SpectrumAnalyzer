@@ -292,7 +292,7 @@ public class Plot extends JPanel {
 			value += values[startingPoint + index];
 		}
 		return value/nbSamples;
-	}
+	}//End meanValueOfSampleChunk
 	/**
 	 * Paints the axes
 	 * @param g2d The graphics item

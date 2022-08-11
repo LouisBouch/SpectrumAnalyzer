@@ -17,9 +17,9 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static int getLittleEndianValueSigned(int[] data, int start, int nbBytes) {
-		int value = 0;
-		int temp;
+	public static double getLittleEndianValueSigned(int[] data, int start, int nbBytes) {
+		double value = 0;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
 			value += temp * Math.pow(256, i);
@@ -35,9 +35,9 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static int getLittleEndianValueSigned(byte[] data, int start, int nbBytes) {
-		int value = 0;
-		int temp;
+	public static double getLittleEndianValueSigned(byte[] data, int start, int nbBytes) {
+		double value = 0;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
 			value += temp * Math.pow(256, i);
@@ -54,14 +54,9 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static int getLittleEndianValueUnsigned(int[] data, int start, int nbBytes) {
-//		int value = 0;
-//		for (int i = 0; i < nbBytes; i++) {
-//			value += data[start + i] * Math.pow(256, i);
-//		}
-//		return value;
-		int value = 0;
-		int temp;
+	public static double getLittleEndianValueUnsigned(int[] data, int start, int nbBytes) {
+		double value = 0;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
 			value += temp * Math.pow(256, i);
@@ -75,14 +70,9 @@ public class ByteManipulationTools {
 		 * @param nbBytes The number of bytes to compute starting for the "start" byte
 		 * @return The value of the bytes
 		 */
-		public static int getLittleEndianValueUnsigned(byte[] data, int start, int nbBytes) {
-//			int value = 0;
-//			for (int i = 0; i < nbBytes; i++) {
-//				value += data[start + i] * Math.pow(256, i);
-//			}
-//			return value;
-			int value = 0;
-			int temp;
+		public static double getLittleEndianValueUnsigned(byte[] data, int start, int nbBytes) {
+			double value = 0;
+			double temp;
 			for (int i = 0; i < nbBytes; i++) {
 				temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
 				value += temp * Math.pow(256, i);
@@ -97,13 +87,13 @@ public class ByteManipulationTools {
 	public static byte[] decimalToBits(int value) {
 		if (value == 0) return new byte[1];
 		byte leftOver;
-		int newValue = value;
+		double newValue = value;
 		int size = (int) Math.floor(Math.log(value)/Math.log(2) + 1);
 		int index = 1;
 		byte[] bits = new byte[size];
 		while (newValue != 0) {
 			leftOver = (byte) (newValue%2);
-			newValue = newValue/2;
+			newValue = (int) (newValue/2);
 			bits[size - index] = leftOver;
 			index++;
 		}

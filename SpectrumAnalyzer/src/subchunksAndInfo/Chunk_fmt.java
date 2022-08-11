@@ -52,33 +52,33 @@ public class Chunk_fmt extends SubChunks {
 		info = "";
 		int[] temp = new int[this.getSubChunkSize()];
 		for (int i = 0; i < this.getSubChunkSize(); i++) {
-			if (this.getData()[i] < 0) temp[i] = ByteManipulationTools.unsignedVersionOfByteTwosComplement(this.getData()[i]);
+			if (this.getData()[i] < 0) temp[i] = (int) ByteManipulationTools.unsignedVersionOfByteTwosComplement(this.getData()[i]);
 			else temp[i] = this.getData()[i];
 		}
 		
-		format = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 2);
+		format = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 2);
 		dataFormat = format;
 		info += "AudioFormat: " + format + " -> " + formatFinder(format);
 		
 		//Gets the number of channels
-		channels = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 2, 2);
+		channels = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 2, 2);
 		info += "<br/>Number of channels: " + channels;
 
 		//Block align (Bytes for all samples)
-		blockAlign = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 12, 2);
+		blockAlign = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 12, 2);
 		info += "<br/>Bytes per block: " + blockAlign + " bytes";
 
 		//Bits per sample
-		bitsPerSample = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 14, 2);
+		bitsPerSample = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 14, 2);
 		validBitsPerSample = bitsPerSample;
 		info += "<br/>Bits per sample: " + bitsPerSample + " bits";
 		
 		//Gets the sample rate
-		sampleRate = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 4, 4);
+		sampleRate = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 4, 4);
 		info += "<br/>Sample rate: " + (sampleRate / 10)/100.0 + " kHz";
 		
 		//Gets the bit rate
-		bitRate = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 8, 4) * 8;
+		bitRate = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 8, 4) * 8;
 		info += "<br/>Bit rate: " + (bitRate / 10)/100.0 + " kb/s";
 		
 		//Extra information for none integer PCM formats
@@ -126,31 +126,31 @@ public class Chunk_fmt extends SubChunks {
 					"TFL", "TFC", "TFR", "TBL", "TBC", "TBR"};
 			
 			//Valid bits
-			validBitsPerSample = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
+			validBitsPerSample = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
 			info += "<br/>Valid bits per sample: " + validBitsPerSample;
 			
 			//Channels layout
-			String channelsByteValue = "" + ByteManipulationTools.getLittleEndianValueUnsigned(temp, 20, 4);
+			String channelsByteValue = "" + (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 20, 4);
 			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
 			//Assigns channels to speakers
-			int assignedChannel;
-			for (assignedChannel = 0; assignedChannel < bits.length; assignedChannel++) {
-				if (assignedChannel < channels) {
-					if (bits[bits.length - 1 - assignedChannel] != 0) {
+			int assignedChannels = 0;
+			for (int channel = 0; channel < bits.length; channel++) {
+				if (assignedChannels < channels) {
+					if (bits[bits.length - 1 - channel] != 0) {
 						/*channelsLocation += "Channel " + (i+1) + " = " + speakersInfo[i] + "; ";*/
-						channelsLocation += speakersInfo[assignedChannel] + " ";
-						channelsLocationLongName += speakersInfoLongName[assignedChannel] + ".";
-						
+						channelsLocation += speakersInfo[channel] + " ";
+						channelsLocationLongName += speakersInfoLongName[channel] + ".";
+						assignedChannels++;
 					}
 				}
 				else break;
 			}
-			if (assignedChannel != 0) {
+			if (assignedChannels != 0) {
 				info += "<br/>Channels layout: " + channelsLocation.substring(0, channelsLocation.length() - 1);
 			}
 			
 			//GUID
-			dataFormat = ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
+			dataFormat = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
 			info += "<br/>Sub format GUID: " + dataFormat + "  -> " + formatFinder(dataFormat);
 		}
 		else return;

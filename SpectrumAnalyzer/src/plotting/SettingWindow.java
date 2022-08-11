@@ -11,7 +11,6 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -24,9 +23,7 @@ import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -49,6 +46,7 @@ public class SettingWindow extends JFrame {
 	public SettingWindow(Plot parent) {
 		this.parent = parent;
 		this.possiblePlots = parent.getNbPossiblePlots();
+		
 		//Sets detailedPossiblePlots
 		String singleStringDetailedPossiblePlots = ((Chunk_fmt) parent.getWavInfo().getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getChannelsLocationLongName();
 		detailedPossiblePlots = new String[possiblePlots];
