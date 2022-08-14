@@ -20,7 +20,7 @@ import javax.swing.SpringLayout;
 
 import subchunksAndInfo.Chunk_fmt;
 import subchunksAndInfo.WavReader;
-import tools.ScreenSize;
+import tools.ScreenSizeTool;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -101,9 +101,9 @@ public class Plot extends JPanel {
 	 */
 	public void prepPlot() {
 		setBackground(new Color(0, 0, 0));
-		setPreferredSize(new Dimension(ScreenSize.width * 3/4, ScreenSize.height * 1/2));
-		xOffset = ScreenSize.width * 3/4 * 1/2;
-		yOffset = ScreenSize.height * 1/2 * 1/2;
+		setPreferredSize(new Dimension(ScreenSizeTool.width * 3/4, ScreenSizeTool.height * 1/2));
+		xOffset = ScreenSizeTool.width * 3/4 * 1/2;
+		yOffset = ScreenSizeTool.height * 1/2 * 1/2;
 		channelsToPlot = new int[1];
 		channelsToPlot[0] = 0;
 

@@ -19,7 +19,7 @@ import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 import plotting.Plot;
 import subchunksAndInfo.WavReader;
-import tools.ScreenSize;
+import tools.ScreenSizeTool;
 
 public class MainWindow extends JPanel {
 
@@ -39,7 +39,7 @@ public class MainWindow extends JPanel {
 	 * Creates the window that contains the wave information
 	 */
 	public MainWindow() {		
-		setBounds(0, 0, ScreenSize.width , ScreenSize.height - 63);	
+		setBounds(0, 0, ScreenSizeTool.width , ScreenSizeTool.height - 63);	
 		setBackground(new Color(80, 85, 110));
 		setLayoutDim();
 		setLayout(new MigLayout("", col, row));

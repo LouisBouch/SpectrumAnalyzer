@@ -26,7 +26,7 @@ public class Chunk_fmt extends SubChunks {
 	/**
 	 * Information about the wav file in a single string
 	 */
-	private String info;
+	private String info = "";
 	
 	
 	private HashMap<Integer, String> formats = new HashMap<Integer, String>();
@@ -42,7 +42,6 @@ public class Chunk_fmt extends SubChunks {
 	 * Sets the info for the current subchunk
 	 */
 	public void setInfo() {
-		info = "";
 		int[] temp = new int[this.getSubChunkSize()];
 		for (int i = 0; i < this.getSubChunkSize(); i++) {
 			if (this.getData()[i] < 0) temp[i] = (int) ByteManipulationTools.unsignedVersionOfByteTwosComplement(this.getData()[i]);

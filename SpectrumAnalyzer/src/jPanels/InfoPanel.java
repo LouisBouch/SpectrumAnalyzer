@@ -15,14 +15,14 @@ import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.border.EtchedBorder;
 
-import tools.ScreenSize;
+import tools.ScreenSizeTool;
 
 public class InfoPanel extends JPanel {
 
 	private static final long serialVersionUID = -3472014902506067567L;
 	private JPanel panel = this;
-	private int width = ScreenSize.width * 1/4;
-	private int height = ScreenSize.height * 1/2;
+	private int width = ScreenSizeTool.width * 1/4;
+	private int height = ScreenSizeTool.height * 1/2;
 	
 	private JLabel lbl_textInfo;
 	private Color backGroundColor = new Color(50, 55, 80);
