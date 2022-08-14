@@ -2,7 +2,7 @@ package subchunksAndInfo;
 
 public class Chunk_data extends SubChunks {
 
-	public Chunk_data(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
+	public Chunk_data(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 		setInfo();
 	}

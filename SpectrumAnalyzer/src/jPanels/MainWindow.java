@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import plotting.Plot;
-import subchunksAndInfo.WavInfo;
+import subchunksAndInfo.WavReader;
 import tools.ScreenSize;
 
 public class MainWindow extends JPanel {
@@ -30,7 +30,7 @@ public class MainWindow extends JPanel {
 	
 	private JPanel panel = this;
 	
-	private WavInfo wavFileInfo;
+	private WavReader wavFileInfo;
 	
 	private ArrayList<Plot> plots = new ArrayList<>();
 
@@ -104,7 +104,7 @@ public class MainWindow extends JPanel {
 						JOptionPane.showMessageDialog(panel, "The chosen file is not a valid .WAV file");
 					}
 					else {
-						wavFileInfo = new WavInfo(binary, dialog.getFile());
+						wavFileInfo = new WavReader(binary, dialog.getFile());
 						wavInfoPanel.setText(wavFileInfo.getFileInfo());
 						
 						plots.get(0).setWavInfo(wavFileInfo);

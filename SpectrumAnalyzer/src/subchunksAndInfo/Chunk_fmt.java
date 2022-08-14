@@ -23,23 +23,16 @@ public class Chunk_fmt extends SubChunks {
 	 * Variable containing the successive non-abbreviated channel names
 	 */
 	private String channelsLocationLongName = "";
-
-	private String info;
-	/**Additional information depending on the format used;<br/>
-	 * 65534:<br/>
-	 * 0 -> valid bits per sample<br/>
-	 * 1 -> channel mask<br/>
-	 * 2 -> actual format<br/>
-	 * 
-	 * 
+	/**
+	 * Information about the wav file in a single string
 	 */
-//	private String[] formatInfo = null;
+	private String info;
 	
 	
 	private HashMap<Integer, String> formats = new HashMap<Integer, String>();
 	
 
-	public Chunk_fmt(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
+	public Chunk_fmt(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 		formatInitializer();
 		setInfo();
@@ -105,19 +98,14 @@ public class Chunk_fmt extends SubChunks {
 		info += "<br/><br/><i>Format specific information:</i>";
 		
 		if (format == 2) {
-//			formatInfo = new String[1];
 		}
 		else if (format == 3) {
-//			formatInfo = new String[1];
 		}
 		else if (format == 6) {
-//			formatInfo = new String[1];
 		}
 		else if (format == 7) {
-//			formatInfo = new String[1];
 		}
 		else if (format == 65534) {
-//			formatInfo = new String[4];
 			String[] speakersInfoLongName = {"Front left", "Front right", "Front center", "Low frequency", "Back left", "Back right",
 					"Front left of center", "Front right of center", "Back center", "Side left", "Side right", "Top center",
 					"Top front left", "Top front center", "Top front right", "Top back left", "Top back center", "Top back right"};

@@ -5,14 +5,19 @@ public class SubChunks {
 	private int subChunkSize;
 	private String info = "NO AVAILABLE INFO";
 	private byte[] data;
-	private WavInfo infoReservoir;
 	private boolean paddingBit;
 	
-	public SubChunks(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
+	/**
+	 * Creates a chunk
+	 * @param subChunkName The name of the subchunk
+	 * @param subChunkSize The size of the data in the subchunk (Does not count the 4 bits for the name and 4 bits for the size)
+	 * @param data The binary data of the subchunk
+	 * @param paddingByte True if a padding byte is added, false otherwise
+	 */
+	public SubChunks(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
 		this.subChunkName = subChunkName;
 		this.subChunkSize = subChunkSize;
 		this.data = data;
-		this.infoReservoir = infoReservoir;
 		this.paddingBit = paddingByte;
 	}
 	/**
@@ -42,13 +47,6 @@ public class SubChunks {
 	 */
 	public String getInfo() {
 		return info;
-	}
-	/**
-	 * Gets the infoReservoir
-	 * @return The infoReservoir
-	 */
-	public WavInfo getInfoReservoir() {
-		return infoReservoir;
 	}
 	/**
 	 * Allows for the info field to be set

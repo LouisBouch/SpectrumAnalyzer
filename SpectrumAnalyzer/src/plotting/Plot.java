@@ -19,7 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
 import subchunksAndInfo.Chunk_fmt;
-import subchunksAndInfo.WavInfo;
+import subchunksAndInfo.WavReader;
 import tools.ScreenSize;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -30,7 +30,7 @@ public class Plot extends JPanel {
 	
 	JPanel panel = this;
 
-	private WavInfo wavInfo;//Contains the information about the wav file
+	private WavReader wavInfo;//Contains the information about the wav file
 	
 	private SettingWindow waveFormSet;//The settings window
 	
@@ -237,10 +237,18 @@ public class Plot extends JPanel {
 
 						sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
 						sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
-						yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength) * yPixelsPerUnit);
+						
+						//First way to draw
+						yIni = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[0] * yPixelsPerUnit);
+						yFin = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[1] * yPixelsPerUnit);
 
 
-						g2d.drawLine(xIni, yIni, xFin, yFin);
+						g2d.drawLine(xIni, yOffset, xFin, yFin);
+						g2d.drawLine(xIni, yOffset, xFin, yIni);
+						
+						//Second way to draw
+//						yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength) * yPixelsPerUnit);
+//						g2d.drawLine(xIni, yIni, xFin, yFin);
 
 
 						xIni = xFin;
@@ -268,7 +276,6 @@ public class Plot extends JPanel {
 						iterationNb++;
 						sampleNb++;
 					} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
-					System.out.println("");
 				}
 			}
 		}
@@ -293,6 +300,30 @@ public class Plot extends JPanel {
 		}
 		return value/nbSamples;
 	}//End meanValueOfSampleChunk
+	
+	/**
+	 * Gets the minimum and maximum value of the sample
+	 * @param values The array
+	 * @param startingPoint The starting point in the array
+	 * @param nbSamples The number of samples to go through
+	 * @return The minimum[0] and maximum[1] value of the sample
+	 */
+	public double[] minMaxOfSampleChunk(double[] values, int startingPoint, int nbSamples) {
+		double[] minMax = new double[2];
+		double value;
+		minMax[0] = values[startingPoint];
+		minMax[1] = minMax[0];
+		for (int index = 1; index < nbSamples; index++) {
+			if (startingPoint + index >= values.length) {//Breaks if it goes beyond the max amount of samples
+				break;
+			}
+			value = values[startingPoint + index];
+			if (value < minMax[0]) minMax[0] = value;
+			if (value > minMax[1]) minMax[1] = value;
+		}
+		return minMax;
+	}//End minMaxOfSampleChunk
+	
 	/**
 	 * Paints the axes
 	 * @param g2d The graphics item
@@ -587,7 +618,7 @@ public class Plot extends JPanel {
 	 * Sets the info of the wav file
 	 * @param wavInfo Object that contains the information about the wav file
 	 */
-	public void setWavInfo(WavInfo wavInfo) {
+	public void setWavInfo(WavReader wavInfo) {
 		channelsToPlot = new int[1];
 		channelsToPlot[0] = 0;
 		this.wavInfo = wavInfo;
@@ -603,7 +634,7 @@ public class Plot extends JPanel {
 	 * Gets the information about the wav file
 	 * @return The wavInfo variable
 	 */
-	public WavInfo getWavInfo() {
+	public WavReader getWavInfo() {
 		return wavInfo;
 	}
 	/**
