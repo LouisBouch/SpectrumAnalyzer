@@ -21,7 +21,7 @@ public class Chunk_fact extends SubChunks{
 			else temp[i] = this.getData()[i];
 		}
 		
-		nbSampleFrames = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 4);
+		nbSampleFrames = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 0, 4, ByteManipulationTools.LITTLEENDIAN);
 		info += "Number of sample frames: " + nbSampleFrames;
 		
 		this.setInfo(info);

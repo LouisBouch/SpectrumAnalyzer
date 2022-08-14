@@ -10,14 +10,14 @@ public class Chunk_PEAK extends SubChunks {
 	
 	public Chunk_PEAK(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
-		version = ByteManipulationTools.getLittleEndianValueUnsigned(data, 0, 4);
-		timeStamp = ByteManipulationTools.getLittleEndianValueUnsigned(data, 4, 4);
+		version = ByteManipulationTools.getDecimalValueUnsigned(data, 0, 4, ByteManipulationTools.LITTLEENDIAN);
+		timeStamp = ByteManipulationTools.getDecimalValueUnsigned(data, 4, 4, ByteManipulationTools.LITTLEENDIAN);
 		int nbChannels = (data.length - 8) / 8;
 		peaks = new double[nbChannels][2];
 		for (int channel = 0; channel < nbChannels; channel++) {
-			peaks[channel][0] = ByteManipulationTools.getFloatingP32(data, 8 + 8 * channel);
+			peaks[channel][0] = ByteManipulationTools.getFloatingP32(data, 8 + 8 * channel, ByteManipulationTools.LITTLEENDIAN);
 			System.out.println(peaks[channel][0]);
-			peaks[channel][1] = ByteManipulationTools.getLittleEndianValueUnsigned(data, 8 + 8 * channel + 4, 4);
+			peaks[channel][1] = ByteManipulationTools.getDecimalValueUnsigned(data, 8 + 8 * channel + 4, 4, ByteManipulationTools.LITTLEENDIAN);
 		}//End loop
 	}//End Chunk_PEAK
 	

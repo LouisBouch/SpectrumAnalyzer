@@ -1,6 +1,8 @@
 package tools;
 
 public class ByteManipulationTools {
+	public static final int BIGENDIAN = 1;
+	public static final int LITTLEENDIAN = 0;
 	/**
 	 *Takes a signed byte in a 2-'s complement disposition and converts it into the unsigned version of the same binary code
 	 * @param signedByte The signer byte
@@ -17,12 +19,13 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static double getLittleEndianValueSigned(int[] data, int start, int nbBytes) {
+	public static double getDecimalValueSigned(int[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
 		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, i);
+			if (endianness == 1 ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		//if the last bit is a 1, gets the negative of the two's complement
 		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
@@ -35,12 +38,13 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static double getLittleEndianValueSigned(byte[] data, int start, int nbBytes) {
+	public static double getDecimalValueSigned(byte[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
 		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, i);
+			if (endianness == 1 ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		//if the last bit is a 1, gets the negative of the two's complement
 		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
@@ -54,12 +58,13 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static double getLittleEndianValueUnsigned(int[] data, int start, int nbBytes) {
+	public static double getDecimalValueUnsigned(int[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
 		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, i);
+			if (endianness == 1 ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		return value;
 	}
@@ -70,87 +75,90 @@ public class ByteManipulationTools {
 	 * @param nbBytes The number of bytes to compute starting for the "start" byte
 	 * @return The value of the bytes
 	 */
-	public static double getLittleEndianValueUnsigned(byte[] data, int start, int nbBytes) {
+	public static double getDecimalValueUnsigned(byte[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
 		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, i);
+			if (endianness == 1 ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		return value;
+		
+			
 	}
 	
 	
 	
-	/**
-	 * Computes the value of consecutive bytes in the Big endian format. Signed using two's complement
-	 * @param start The starting point of the bytes to compute
-	 * @param data The data to take the bytes from
-	 * @param nbBytes The number of bytes to compute starting for the "start" byte
-	 * @return The value of the bytes
-	 */
-	public static double getBigEndianValueSigned(int[] data, int start, int nbBytes) {
-		double value = 0;
-		double temp;
-		for (int i = 0; i < nbBytes; i++) {
-			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, nbBytes - 1 - i);
-		}
-		//if the last bit is a 1, gets the negative of the two's complement
-		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
-		return value;
-	}
-	/**
-	 * Computes the value of consecutive bytes in the Big endian format. Signed using two's complement
-	 * @param start The starting point of the bytes to compute
-	 * @param data The data to take the bytes from
-	 * @param nbBytes The number of bytes to compute starting for the "start" byte
-	 * @return The value of the bytes
-	 */
-	public static double getBigEndianValueSigned(byte[] data, int start, int nbBytes) {
-		double value = 0;
-		double temp;
-		for (int i = 0; i < nbBytes; i++) {
-			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, nbBytes - 1 - i);
-		}
-		//if the last bit is a 1, gets the negative of the two's complement
-		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
-		return value;
-	}
-	
-	/**
-	 * Computes the value of consecutive bytes in the Big endian format
-	 * @param start The starting point of the bytes to compute
-	 * @param data The data to take the bytes from
-	 * @param nbBytes The number of bytes to compute starting for the "start" byte
-	 * @return The value of the bytes
-	 */
-	public static double getBigEndianValueUnsigned(int[] data, int start, int nbBytes) {
-		double value = 0;
-		double temp;
-		for (int i = 0; i < nbBytes; i++) {
-			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, nbBytes - 1 - i);
-		}
-		return value;
-	}
-	/**
-	 * Computes the value of consecutive bytes in the Big endian format
-	 * @param start The starting point of the bytes to compute
-	 * @param data The data to take the bytes from
-	 * @param nbBytes The number of bytes to compute starting for the "start" byte
-	 * @return The value of the bytes
-	 */
-	public static double getBigEndianValueUnsigned(byte[] data, int start, int nbBytes) {
-		double value = 0;
-		double temp;
-		for (int i = 0; i < nbBytes; i++) {
-			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-			value += temp * Math.pow(256, nbBytes - 1 - i);
-		}
-		return value;
-	}
+//	/**
+//	 * Computes the value of consecutive bytes in the Big endian format. Signed using two's complement
+//	 * @param start The starting point of the bytes to compute
+//	 * @param data The data to take the bytes from
+//	 * @param nbBytes The number of bytes to compute starting for the "start" byte
+//	 * @return The value of the bytes
+//	 */
+//	public static double getBigEndianValueSigned(int[] data, int start, int nbBytes) {
+//		double value = 0;
+//		double temp;
+//		for (int i = 0; i < nbBytes; i++) {
+//			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
+//			value += temp * Math.pow(256, nbBytes - 1 - i);
+//		}
+//		//if the last bit is a 1, gets the negative of the two's complement
+//		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
+//		return value;
+//	}
+//	/**
+//	 * Computes the value of consecutive bytes in the Big endian format. Signed using two's complement
+//	 * @param start The starting point of the bytes to compute
+//	 * @param data The data to take the bytes from
+//	 * @param nbBytes The number of bytes to compute starting for the "start" byte
+//	 * @return The value of the bytes
+//	 */
+//	public static double getBigEndianValueSigned(byte[] data, int start, int nbBytes) {
+//		double value = 0;
+//		double temp;
+//		for (int i = 0; i < nbBytes; i++) {
+//			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
+//			value += temp * Math.pow(256, nbBytes - 1 - i);
+//		}
+//		//if the last bit is a 1, gets the negative of the two's complement
+//		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
+//		return value;
+//	}
+//	
+//	/**
+//	 * Computes the value of consecutive bytes in the Big endian format
+//	 * @param start The starting point of the bytes to compute
+//	 * @param data The data to take the bytes from
+//	 * @param nbBytes The number of bytes to compute starting for the "start" byte
+//	 * @return The value of the bytes
+//	 */
+//	public static double getBigEndianValueUnsigned(int[] data, int start, int nbBytes) {
+//		double value = 0;
+//		double temp;
+//		for (int i = 0; i < nbBytes; i++) {
+//			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
+//			value += temp * Math.pow(256, nbBytes - 1 - i);
+//		}
+//		return value;
+//	}
+//	/**
+//	 * Computes the value of consecutive bytes in the Big endian format
+//	 * @param start The starting point of the bytes to compute
+//	 * @param data The data to take the bytes from
+//	 * @param nbBytes The number of bytes to compute starting for the "start" byte
+//	 * @return The value of the bytes
+//	 */
+//	public static double getBigEndianValueUnsigned(byte[] data, int start, int nbBytes) {
+//		double value = 0;
+//		double temp;
+//		for (int i = 0; i < nbBytes; i++) {
+//			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
+//			value += temp * Math.pow(256, nbBytes - 1 - i);
+//		}
+//		return value;
+//	}
 	/**
 	 * Computes the value of consecutive bits
 	 * @param data The data array
@@ -172,9 +180,9 @@ public class ByteManipulationTools {
 	 * @param start The starting point
 	 * @return The float
 	 */
-	public static double getFloatingP32(byte[] data, int start) {
-//		byte[] bits = decimalToBits(getBigEndianValueUnsigned(data, start, 4), 32);
-		byte[] bits = decimalToBits(getLittleEndianValueUnsigned(data, start, 4), 32);
+	public static double getFloatingP32(byte[] data, int start, int endianness) {
+		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 4, endianness), 32);
+		
 		int sign = bits[0] == 1 ? -1 : 1;
 		int exp = (int) getDecimalFromBits(bits, 1, 8) - 127;
 		boolean denormalized = exp == -127 ? true : false;
@@ -194,8 +202,9 @@ public class ByteManipulationTools {
 	 * @param start The starting point
 	 * @return The float
 	 */
-	public static double getFloatingP32(int[] data, int start) {
-		byte[] bits = decimalToBits(getBigEndianValueUnsigned(data, start, 4), 32);
+	public static double getFloatingP32(int[] data, int start, int endianness) {
+		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 4, endianness), 32);
+		
 		int sign = bits[0] == 1 ? -1 : 1;
 		int exp = (int) getDecimalFromBits(bits, 1, 8) - 127;
 		boolean denormalized = exp == -127 ? true : false;

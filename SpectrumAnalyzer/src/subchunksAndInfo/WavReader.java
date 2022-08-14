@@ -162,8 +162,8 @@ public class WavReader {
 			initialOffsetPerChannel = channel * storedBytesPerSample;
 			for (int sample = 0; sample < samplesPerChannel; sample++) {
 				//8 bits samples are unsigned
-				if (validBitsPerSample > 8) channelSeparatedData[channel][sample] = ByteManipulationTools.getLittleEndianValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample);
-				else channelSeparatedData[channel][sample] = ByteManipulationTools.getLittleEndianValueUnsigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample) - eightBitOffset;
+				if (validBitsPerSample > 8) channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN);
+				else channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueUnsigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN) - eightBitOffset;
 				channelSeparatedData[channel][sample] /= Math.pow(2, Math.ceil(bitsPerSample / 8.0) * 8 - 1);
 			}
 		}
@@ -189,7 +189,7 @@ public class WavReader {
 		for (int channel = 0; channel < nbChannels; channel++) {
 			initialOffsetPerChannel = channel * storedBytesPerSample;
 			for (int sample = 0; sample < samplesPerChannel; sample++) {
-				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32(rawData, initialOffsetPerChannel + sampleByteOffset * sample);
+				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32(rawData, initialOffsetPerChannel + sampleByteOffset * sample, ByteManipulationTools.LITTLEENDIAN);
 			}
 		}
 		return channelSeparatedData;

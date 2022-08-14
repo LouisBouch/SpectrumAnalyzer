@@ -49,29 +49,29 @@ public class Chunk_fmt extends SubChunks {
 			else temp[i] = this.getData()[i];
 		}
 		
-		format = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 0, 2);
+		format = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 0, 2, ByteManipulationTools.LITTLEENDIAN);
 		dataFormat = format;
 		info += "AudioFormat: " + format + " -> " + formatFinder(format);
 		
 		//Gets the number of channels
-		channels = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 2, 2);
+		channels = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 2, 2, ByteManipulationTools.LITTLEENDIAN);
 		info += "<br/>Number of channels: " + channels;
 
 		//Block align (Bytes for all samples)
-		blockAlign = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 12, 2);
+		blockAlign = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 12, 2, ByteManipulationTools.LITTLEENDIAN);
 		info += "<br/>Bytes per block: " + blockAlign + " bytes";
 
 		//Bits per sample
-		bitsPerSample = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 14, 2);
+		bitsPerSample = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 14, 2, ByteManipulationTools.LITTLEENDIAN);
 		validBitsPerSample = bitsPerSample;
 		info += "<br/>Bits per sample: " + bitsPerSample + " bits";
 		
 		//Gets the sample rate
-		sampleRate = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 4, 4);
+		sampleRate = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 4, 4, ByteManipulationTools.LITTLEENDIAN);
 		info += "<br/>Sample rate: " + (sampleRate / 10)/100.0 + " kHz";
 		
 		//Gets the bit rate
-		bitRate = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 8, 4) * 8;
+		bitRate = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 8, 4, ByteManipulationTools.LITTLEENDIAN) * 8;
 		info += "<br/>Bit rate: " + (bitRate / 10)/100.0 + " kb/s";
 		
 		//Extra information for none integer PCM formats
@@ -114,11 +114,11 @@ public class Chunk_fmt extends SubChunks {
 					"TFL", "TFC", "TFR", "TBL", "TBC", "TBR"};
 			
 			//Valid bits
-			validBitsPerSample = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 18, 2);
+			validBitsPerSample = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 18, 2, ByteManipulationTools.LITTLEENDIAN);
 			info += "<br/>Valid bits per sample: " + validBitsPerSample;
 			
 			//Channels layout
-			String channelsByteValue = "" + (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 20, 4);
+			String channelsByteValue = "" + (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 20, 4, ByteManipulationTools.LITTLEENDIAN);
 			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
 			//Assigns channels to speakers
 			int assignedChannels = 0;
@@ -138,7 +138,7 @@ public class Chunk_fmt extends SubChunks {
 			}
 			
 			//GUID
-			dataFormat = (int) ByteManipulationTools.getLittleEndianValueUnsigned(temp, 24, 2);
+			dataFormat = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 24, 2, ByteManipulationTools.LITTLEENDIAN);
 			info += "<br/>Sub format GUID: " + dataFormat + "  -> " + formatFinder(dataFormat);
 		}
 		else return;
