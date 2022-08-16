@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -19,10 +21,9 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
 import subchunksAndInfo.Chunk_fmt;
-import subchunksAndInfo.WavReader;
 import tools.ScreenSizeTool;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import wavParsingAndStoring.WavInfo;
+import wavParsingAndStoring.WavReader;
 
 public class Plot extends JPanel {
 
@@ -30,7 +31,7 @@ public class Plot extends JPanel {
 	
 	JPanel panel = this;
 
-	private WavReader wavInfo;//Contains the information about the wav file
+	private WavInfo infoReservoir;//Contains the information about the wav file
 	
 	private SettingWindow waveFormSet;//The settings window
 	
@@ -176,15 +177,16 @@ public class Plot extends JPanel {
 	 * Uses the information from the wav file to create the waveform
 	 */
 	public void loadWave() {
-		if (wavInfo != null) {
-			values = wavInfo.getChannelSeparatedData();
+		if (infoReservoir != null) {
+			values = infoReservoir.getDataInfo().getChannelSeparatedData();
 			if (values != null) {
-				samplesPerUnit = ((Chunk_fmt) wavInfo.getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getSampleRate();
+//				samplesPerUnit = ((Chunk_fmt) wavInfo.getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getSampleRate();
+				samplesPerUnit = infoReservoir.getFormatInfo().getSampleRate();
 				nbPossiblePlots = values.length;
 				nbSamples = values[channelsToPlot[0]].length;
 				
 				if (waveFormSet != null) waveFormSet.close();
-				waveFormSet = new SettingWindow(this);
+				waveFormSet = new SettingWindow(infoReservoir, this);
 				
 				repaint();
 			}
@@ -234,7 +236,7 @@ public class Plot extends JPanel {
 					yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
 					do {
 						xFin = xIni + 1;
-
+						
 						sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
 						sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
 						
@@ -375,7 +377,7 @@ public class Plot extends JPanel {
 			g2dSoftLines.drawLine(0, yPos, getWidth(), yPos);
 			i++;
 		}	while(pixelsPerYStep*i < getHeight());
-	}
+	}//End paintAxes
 	/**
 	 * Prints a centered string in the x direction (top aligned)
 	 * @param text The text to print
@@ -618,10 +620,10 @@ public class Plot extends JPanel {
 	 * Sets the info of the wav file
 	 * @param wavInfo Object that contains the information about the wav file
 	 */
-	public void setWavInfo(WavReader wavInfo) {
+	public void setWavInfo(WavInfo infoReservoir) {
 		channelsToPlot = new int[1];
 		channelsToPlot[0] = 0;
-		this.wavInfo = wavInfo;
+		this.infoReservoir = infoReservoir;
 	}
 	/**
 	 * Gets the amount of possible plots
@@ -632,10 +634,10 @@ public class Plot extends JPanel {
 	}
 	/**
 	 * Gets the information about the wav file
-	 * @return The wavInfo variable
+	 * @return The infoReservoir variable
 	 */
-	public WavReader getWavInfo() {
-		return wavInfo;
+	public WavInfo getInfoReservoir() {
+		return infoReservoir;
 	}
 	/**
 	 * Gets the color array that draws the plots

@@ -1,44 +1,59 @@
-package subchunksAndInfo;
+package wavParsingAndStoring;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
+import subChunkObjects.FormatInfo;
+import subchunksAndInfo.Chunk_data;
+import subchunksAndInfo.Chunk_fact;
+import subchunksAndInfo.Chunk_fmt;
+import subchunksAndInfo.SubChunks;
 import tools.ByteManipulationTools;
-import tools.TimeTools;
+import tools.ValueParsingTools;
 
 public class WavReader {
-	private LinkedHashMap<String, SubChunks> subChunks = new LinkedHashMap<String, SubChunks>();
+//	private LinkedHashMap<String, SubChunks> subChunks = new LinkedHashMap<String, SubChunks>();
 	//General information
 	private byte[] binInfo;
 	
 	private String fileName;
-	private String fileInfo;
+//	private String fileInfo;
 	
-	//Data values
-	private double[][] channelSeparatedData;
+	private WavInfo infoReservoir;
+	
+//	//Data values
+//	private double[][] channelSeparatedData;
 	
 	//Constructor
 	public WavReader(byte[] binInfo, String fileName) {
+		infoReservoir = new WavInfo(binInfo, fileName);
+		System.out.println(infoReservoir);
 		this.binInfo = binInfo;
 		this.fileName = fileName;
 		getInfo();
 		try {
-			Chunk_fmt fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");
-			int fm = fmt.getDataFormat();
-			int channels = fmt.getChannels();
-			int bitsPerSample = fmt.getBitsPerSample();;
+//			Chunk_fmt fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");
+//			int fm = fmt.getDataFormat();
+//			int channels = fmt.getChannels();
+			FormatInfo formatInfo = infoReservoir.getFormatInfo();
+			int channels = formatInfo.getChannels();
+//			int bitsPerSample = fmt.getBitsPerSample();;
+			int bitsPerSample = formatInfo.getBitsPerSample();;
 			int validBitsPerSample = bitsPerSample;
 			
-			if (fmt.getFormat() == 65534) {
-				validBitsPerSample = fmt.getValidBitsPerSample();
+			if (formatInfo.getFormat() == 65534) {
+//				validBitsPerSample = fmt.getValidBitsPerSample();
+				validBitsPerSample = formatInfo.getValidBitsPerSample();
 			}
 			
-			Chunk_data data = (Chunk_data) subChunks.get("subchunksAndInfo.Chunk_data");
-			byte[] rawData = data.getData();
+//			Chunk_data data = (Chunk_data) subChunks.get("subchunksAndInfo.Chunk_data");
+//			byte[] rawData = data.getData();
+			byte[] rawData = infoReservoir.getDataInfo().getData();
 			
-			channelSeparatedData = handlingRawData(fm, validBitsPerSample, bitsPerSample, channels, rawData);
+			double[][] channelSeparatedData = handlingRawData(formatInfo.getFormat(), validBitsPerSample, bitsPerSample, channels, rawData);
+			infoReservoir.getDataInfo().setChannelSeparatedData(channelSeparatedData);
 			
 		}
 		catch (ClassCastException e) {
@@ -97,18 +112,18 @@ public class WavReader {
 			try {
 //				System.out.println("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
 				Class<?> subChunk = Class.forName("subchunksAndInfo.Chunk_" + subChunkname.replaceAll("\\s", ""));
-				Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavReader.class, boolean.class);
-				Object sub = constructor.newInstance(subChunkname, 
+				Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavInfo.class, boolean.class);
+				/*Object sub = */constructor.newInstance(subChunkname, 
 						subChunkSize, 
 						subChunkData,
-						this, paddingByte);
-				subChunks.put(subChunk.getName(), (SubChunks) sub);
+						infoReservoir, paddingByte);
+//				subChunks.put(subChunk.getName(), (SubChunks) sub);
 			}
 			
 			catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ClassCastException e) {
 				System.out.println(e + ", cause: " + e.getCause());
 //				e.printStackTrace();
-				subChunks.put("subChunk" + subChunks.size(), new SubChunks(subChunkname, subChunkSize, subChunkData, this, paddingByte));
+//				subChunks.put("subChunk" + subChunks.size(), new SubChunks(subChunkname, subChunkSize, subChunkData, infoReservoir, paddingByte));
 				
 			}
 			
@@ -117,12 +132,13 @@ public class WavReader {
 		
 		//Compresses the information of the subchunks into a single string
 		double time = findTime();
-		Set<String> keys = subChunks.keySet();
-		fileInfo = "<html>" + "<B>Name:</B> " + fileName + "<br/><B>Weight:</B> " + fileSize/divisor + " " + suffix + "<br/><B>Data duration:</B> " + TimeTools.refinedTime(time) + "<br/><br/><br/>";
-		for (String key : keys) {
-			fileInfo += subChunks.get(key).toString() + "<br/><br/>";
-		}
-		fileInfo += "<html>";
+		infoReservoir.setTime(time);
+//		Set<String> keys = subChunks.keySet();
+//		fileInfo = "<html>" + "<B>Name:</B> " + fileName + "<br/><B>Weight:</B> " + fileSize/divisor + " " + suffix + "<br/><B>Data duration:</B> " + TimeTools.refinedTime(time) + "<br/><br/><br/>";
+//		for (String key : keys) {
+//			fileInfo += subChunks.get(key).toString() + "<br/><br/>";
+//		}
+//		fileInfo += "<html>";
 	}
 	/**
 	 * Uses the raw data to create the waveform
@@ -199,24 +215,30 @@ public class WavReader {
 	 * @return The playtime
 	 */
 	public double findTime() {
-		Chunk_data data;
-		Chunk_fact fact;
-		Chunk_fmt fmt;
+//		Chunk_data data;
+//		Chunk_fact fact;
+//		Chunk_fmt fmt;
 
-		int nbBlocks;//Number of times a value is sampled into different channels
+		double nbBlocks;//Number of times a value is sampled into different channels
 		int sampleRate;
 		double time = 0;
 		try {
-			data = (Chunk_data) subChunks.get("subchunksAndInfo.Chunk_data");
-			fact = (Chunk_fact) subChunks.get("subchunksAndInfo.Chunk_fact");;
-			fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");
-			sampleRate = fmt.getSampleRate();
-			if (fact != null) {
-				nbBlocks = fact.getNbSampleFrames();
+//			data = (Chunk_data) subChunks.get("subchunksAndInfo.Chunk_data");
+//			fact = (Chunk_fact) subChunks.get("subchunksAndInfo.Chunk_fact");;
+//			fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");
+//			sampleRate = fmt.getSampleRate();
+			sampleRate = infoReservoir.getFormatInfo().getSampleRate();
+//			if (fact != null) {
+//				nbBlocks = fact.getNbSampleFrames();
+//			}
+			if (infoReservoir.getFactInfo() != null) {
+				nbBlocks = infoReservoir.getFactInfo().getNbSampleFrames();
 			}
 			else {
-				int totalBytes = data.getSubChunkSize();
-				int bytesPerBlock = fmt.getBlockAlign();
+//				int totalBytes = data.getSubChunkSize();
+				double totalBytes = infoReservoir.getWeight();
+//				int bytesPerBlock = fmt.getBlockAlign();
+				int bytesPerBlock = infoReservoir.getFormatInfo().getBlockAlign();
 				nbBlocks = totalBytes / bytesPerBlock;
 			}
 			time = (nbBlocks * 1.0) / sampleRate;
@@ -235,24 +257,31 @@ public class WavReader {
 		return fileName;
 	}
 	/**
-	 * Gets information about the Wav file
-	 * @return The information
+	 * Gets the information about the wav file
+	 * @return The infoReservoir variable
 	 */
-	public String getFileInfo() {
-		return fileInfo;
+	public WavInfo getInfoReservoir() {
+		return infoReservoir;
 	}
-	/**
-	 * Gets data from each channels
-	 * @return The data
-	 */
-	public double[][] getChannelSeparatedData() {
-		return channelSeparatedData;
-	}
-	/**
-	 * Gets all the subchunks
-	 * @return The subchunks
-	 */
-	public LinkedHashMap<String, SubChunks> getSubChunks() {
-		return subChunks;
-	}
+//	/**
+//	 * Gets information about the Wav file
+//	 * @return The information
+//	 */
+//	public String getFileInfo() {
+//		return fileInfo;
+//	}
+//	/**
+//	 * Gets data from each channels
+//	 * @return The data
+//	 */
+//	public double[][] getChannelSeparatedData() {
+//		return channelSeparatedData;
+//	}
+//	/**
+//	 * Gets all the subchunks
+//	 * @return The subchunks
+//	 */
+//	public LinkedHashMap<String, SubChunks> getSubChunks() {
+//		return subChunks;
+//	}
 }

@@ -18,8 +18,8 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import plotting.Plot;
-import subchunksAndInfo.WavReader;
 import tools.ScreenSizeTool;
+import wavParsingAndStoring.WavReader;
 
 public class MainWindow extends JPanel {
 
@@ -38,7 +38,7 @@ public class MainWindow extends JPanel {
 	/**
 	 * Creates the window that contains the wave information
 	 */
-	public MainWindow() {		
+	public MainWindow() {	
 		setBounds(0, 0, ScreenSizeTool.width , ScreenSizeTool.height - 63);	
 		setBackground(new Color(80, 85, 110));
 		setLayoutDim();
@@ -105,9 +105,9 @@ public class MainWindow extends JPanel {
 					}
 					else {
 						wavFileInfo = new WavReader(binary, dialog.getFile());
-						wavInfoPanel.setText(wavFileInfo.getFileInfo());
+						wavInfoPanel.setText(wavFileInfo.getInfoReservoir().toString());
 						
-						plots.get(0).setWavInfo(wavFileInfo);
+						plots.get(0).setWavInfo(wavFileInfo.getInfoReservoir());
 						plots.get(0).loadWave();
 						
 						repaint();
@@ -119,15 +119,6 @@ public class MainWindow extends JPanel {
 		btn_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				/*
-				for (int o = 0; o < 100; o++) {
-					byte[] bits = ByteManipulationTools.decimalToBits(o);
-					for (int i = 0; i < bits.length; i++) {
-						System.out.print(bits[i]);
-					}
-					System.out.println();
-				}
-				*/
 			}
 		});
 		

@@ -1,11 +1,14 @@
 package subchunksAndInfo;
 
+import wavParsingAndStoring.WavInfo;
+
 public class SubChunks {
 	private String subChunkName;
 	private int subChunkSize;
 	private String info = "NO AVAILABLE INFO";
 	private byte[] data;
 	private boolean paddingBit;
+	private WavInfo infoReservoir;
 	
 	/**
 	 * Creates a chunk
@@ -14,11 +17,12 @@ public class SubChunks {
 	 * @param data The binary data of the subchunk
 	 * @param paddingByte True if a padding byte is added, false otherwise
 	 */
-	public SubChunks(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
+	public SubChunks(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		this.subChunkName = subChunkName;
 		this.subChunkSize = subChunkSize;
 		this.data = data;
 		this.paddingBit = paddingByte;
+		this.infoReservoir = infoReservoir;
 	}
 	/**
 	 * Gets the name of the subchunk
@@ -61,6 +65,13 @@ public class SubChunks {
 	 */
 	public boolean isPaddingBit() {
 		return paddingBit;
+	}
+	/**
+	 * Gets all the information about the wav file
+	 * @return The info reservoir
+	 */
+	public WavInfo getInfoReservoir() {
+		return infoReservoir;
 	}
 	@Override
 	public String toString() {

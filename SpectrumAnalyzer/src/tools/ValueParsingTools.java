@@ -1,6 +1,6 @@
 package tools;
 
-public class TimeTools {
+public class ValueParsingTools {
 	/**
 	 * Takes in a time and transforms it into a string that gives days, hours, minutes, seconds and milliseconds.
 	 * @param time Time in seconds
@@ -50,6 +50,23 @@ public class TimeTools {
 			timeString += " " + nbMilliS + " ms";
 		}
 		return timeString;
-		
-	}
+	}//End refinedTime
+	/**
+	 *  Takes a number of bytes and returns a better way of printing it
+	 * @param nbBytes The amount of byte
+	 * @return The refined way of printing it
+	 */
+	public static String refinedByteSize(double nbBytes) {
+		String suffix = "b";
+		double divisor = 1;
+		if (nbBytes > 1E7) {
+			suffix = "Mb";
+			divisor = 1E6;
+		}
+		else if (nbBytes > 1E4) {
+			suffix = "Kb";
+			divisor = 1E3;
+		}
+		return NumberManipulationTools.setDecimalPlaces(nbBytes/divisor, 3) + " " + suffix;
+	}//End refinedByteSize
 }

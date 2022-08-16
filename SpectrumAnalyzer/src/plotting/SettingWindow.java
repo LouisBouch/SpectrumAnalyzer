@@ -28,6 +28,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import subchunksAndInfo.Chunk_fmt;
+import wavParsingAndStoring.WavInfo;
 
 public class SettingWindow extends JFrame {
 
@@ -43,12 +44,14 @@ public class SettingWindow extends JFrame {
 	private int channelFontSize = 15;
 	
 
-	public SettingWindow(Plot parent) {
+	public SettingWindow(WavInfo InfoReservoir, Plot parent) {
 		this.parent = parent;
-		this.possiblePlots = parent.getNbPossiblePlots();
+//		this.possiblePlots = parent.getNbPossiblePlots();
+		this.possiblePlots = InfoReservoir.getFormatInfo().getChannels();
 		
 		//Sets detailedPossiblePlots
-		String singleStringDetailedPossiblePlots = ((Chunk_fmt) parent.getWavInfo().getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getChannelsLocationLongName();
+//		String singleStringDetailedPossiblePlots = ((Chunk_fmt) parent.getWavInfo().getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getChannelsLocationLongName();
+		String singleStringDetailedPossiblePlots = InfoReservoir.getFormatInfo().getChannelsLocationLongName();
 		detailedPossiblePlots = new String[possiblePlots];
 		for (int channel = 0; channel < possiblePlots; channel++) {
 			if (singleStringDetailedPossiblePlots == "") break;

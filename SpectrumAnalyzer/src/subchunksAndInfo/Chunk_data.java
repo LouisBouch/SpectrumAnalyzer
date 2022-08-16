@@ -1,8 +1,13 @@
 package subchunksAndInfo;
 
-public class Chunk_data extends SubChunks {
+import subChunkObjects.DataInfo;
+import wavParsingAndStoring.WavInfo;
 
-	public Chunk_data(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
+public class Chunk_data extends SubChunks {
+	
+	private DataInfo data = new DataInfo();
+
+	public Chunk_data(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 		setInfo();
 	}
@@ -11,7 +16,9 @@ public class Chunk_data extends SubChunks {
 	 * Sets the info for the current subchunk
 	 */
 	public void setInfo() {
-		this.setInfo("Data can be read from the waveform analyzer ---->");
+//		this.setInfo("Data can be read from the waveform analyzer ---->");
+		data.setData(getData());
+		this.getInfoReservoir().setDataInfo(data);
 	}
 	
 	@Override
@@ -20,3 +27,4 @@ public class Chunk_data extends SubChunks {
 	}
 
 }
+//https://wavefilegem.com/how_wave_files_work.html

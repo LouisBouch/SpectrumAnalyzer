@@ -3,6 +3,7 @@ package subchunksAndInfo;
 import java.util.HashMap;
 
 import tools.ByteManipulationTools;
+import wavParsingAndStoring.WavInfo;
 
 public class Chunk_id3 extends SubChunks{
 	private String info = "";
@@ -17,7 +18,7 @@ public class Chunk_id3 extends SubChunks{
 	private boolean compression = false;
 	
 	
-	public Chunk_id3(String subChunkName, int subChunkSize, byte[] data, WavReader infoReservoir, boolean paddingByte) {
+	public Chunk_id3(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 		setHeaders();
 		setInfo();
