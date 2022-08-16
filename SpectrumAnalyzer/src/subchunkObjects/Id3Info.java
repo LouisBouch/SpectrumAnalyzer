@@ -1,8 +1,8 @@
-package subChunkObjects;
+package subchunkObjects;
 
 import interfaces.Info;
 
-public class CueInfo implements Info {
+public class Id3Info implements Info {
 	@Override
 	public String toString() {
 		return "";

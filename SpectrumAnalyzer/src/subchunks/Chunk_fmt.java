@@ -1,8 +1,8 @@
-package subchunksAndInfo;
+package subchunks;
 
 import java.util.HashMap;
 
-import subChunkObjects.FormatInfo;
+import subchunkObjects.FormatInfo;
 import tools.ByteManipulationTools;
 import wavParsingAndStoring.WavInfo;
 

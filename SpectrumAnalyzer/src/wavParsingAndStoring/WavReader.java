@@ -2,16 +2,9 @@ package wavParsingAndStoring;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashMap;
-import java.util.Set;
 
-import subChunkObjects.FormatInfo;
-import subchunksAndInfo.Chunk_data;
-import subchunksAndInfo.Chunk_fact;
-import subchunksAndInfo.Chunk_fmt;
-import subchunksAndInfo.SubChunks;
+import subchunkObjects.FormatInfo;
 import tools.ByteManipulationTools;
-import tools.ValueParsingTools;
 
 public class WavReader {
 //	private LinkedHashMap<String, SubChunks> subChunks = new LinkedHashMap<String, SubChunks>();
@@ -73,18 +66,20 @@ public class WavReader {
 		byte[] subChunkData;
 		boolean paddingByte;
 		
-		//Sets the divisor and suffix for the filesize
-		String suffix = "b";
-		int divisor = 1;
 		int subChunkSize;
-		if (fileSize > 10000000) {
-			suffix = "Mb";
-			divisor = 1000000;
-		}
-		else if (fileSize > 10000) {
-			suffix = "Kb";
-			divisor = 1000;
-		}
+		
+//		//Sets the divisor and suffix for the filesize
+//		String suffix = "b";
+//		int divisor = 1;
+//		
+//		if (fileSize > 10000000) {
+//			suffix = "Mb";
+//			divisor = 1000000;
+//		}
+//		else if (fileSize > 10000) {
+//			suffix = "Kb";
+//			divisor = 1000;
+//		}
 
 		double[] temp = new double[8];
 		
@@ -111,7 +106,7 @@ public class WavReader {
 			}
 			try {
 //				System.out.println("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
-				Class<?> subChunk = Class.forName("subchunksAndInfo.Chunk_" + subChunkname.replaceAll("\\s", ""));
+				Class<?> subChunk = Class.forName("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
 				Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavInfo.class, boolean.class);
 				/*Object sub = */constructor.newInstance(subChunkname, 
 						subChunkSize, 

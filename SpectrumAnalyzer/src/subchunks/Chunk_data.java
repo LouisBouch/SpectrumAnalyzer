@@ -1,6 +1,6 @@
-package subchunksAndInfo;
+package subchunks;
 
-import subChunkObjects.DataInfo;
+import subchunkObjects.DataInfo;
 import wavParsingAndStoring.WavInfo;
 
 public class Chunk_data extends SubChunks {

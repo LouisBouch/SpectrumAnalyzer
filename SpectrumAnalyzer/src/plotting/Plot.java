@@ -20,10 +20,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import subchunksAndInfo.Chunk_fmt;
 import tools.ScreenSizeTool;
 import wavParsingAndStoring.WavInfo;
-import wavParsingAndStoring.WavReader;
 
 public class Plot extends JPanel {
 

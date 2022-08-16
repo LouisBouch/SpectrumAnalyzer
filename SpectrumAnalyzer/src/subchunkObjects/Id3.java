@@ -1,4 +1,4 @@
-package subChunkObjects;
+package subchunkObjects;
 
 
 public class Id3 {

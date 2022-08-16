@@ -1,4 +1,4 @@
-package subchunksAndInfo;
+package subchunks;
 
 import tools.ByteManipulationTools;
 import wavParsingAndStoring.WavInfo;

@@ -4,10 +4,10 @@ package wavParsingAndStoring;
 import java.util.ArrayList;
 
 import interfaces.Info;
-import subChunkObjects.DataInfo;
-import subChunkObjects.FactInfo;
-import subChunkObjects.FormatInfo;
-import subChunkObjects.PeakInfo;
+import subchunkObjects.DataInfo;
+import subchunkObjects.FactInfo;
+import subchunkObjects.FormatInfo;
+import subchunkObjects.PeakInfo;
 import tools.ValueParsingTools;
 
 public class WavInfo {

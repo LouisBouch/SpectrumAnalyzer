@@ -1,4 +1,4 @@
-package subchunksAndInfo;
+package subchunks;
 
 import java.util.HashMap;
 

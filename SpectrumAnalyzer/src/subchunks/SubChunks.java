@@ -1,4 +1,4 @@
-package subchunksAndInfo;
+package subchunks;
 
 import wavParsingAndStoring.WavInfo;
 
@@ -7,7 +7,7 @@ public class SubChunks {
 	private int subChunkSize;
 	private String info = "NO AVAILABLE INFO";
 	private byte[] data;
-	private boolean paddingBit;
+	private boolean paddingByte;
 	private WavInfo infoReservoir;
 	
 	/**
@@ -21,7 +21,7 @@ public class SubChunks {
 		this.subChunkName = subChunkName;
 		this.subChunkSize = subChunkSize;
 		this.data = data;
-		this.paddingBit = paddingByte;
+		this.paddingByte = paddingByte;
 		this.infoReservoir = infoReservoir;
 	}
 	/**
@@ -60,11 +60,11 @@ public class SubChunks {
 		this.info = info;
 	}
 	/**
-	 * Checks if a padding bit was added
+	 * Checks if a padding byte was added
 	 * @return Whether the padding bit was added or not 
 	 */
-	public boolean isPaddingBit() {
-		return paddingBit;
+	public boolean isPaddingByte() {
+		return paddingByte;
 	}
 	/**
 	 * Gets all the information about the wav file

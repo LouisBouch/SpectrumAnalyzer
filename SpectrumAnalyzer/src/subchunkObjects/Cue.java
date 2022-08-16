@@ -1,7 +1,7 @@
-package subChunkObjects;
+package subchunkObjects;
 
 
-public class List {
+public class Cue {
 	@Override
 	public String toString() {
 		return "";

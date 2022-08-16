@@ -1,4 +1,4 @@
-package subChunkObjects;
+package subchunkObjects;
 
 import interfaces.Info;
 

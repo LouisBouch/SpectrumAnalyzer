@@ -1,6 +1,6 @@
-package subchunksAndInfo;
+package subchunks;
 
-import subChunkObjects.FactInfo;
+import subchunkObjects.FactInfo;
 import tools.ByteManipulationTools;
 import wavParsingAndStoring.WavInfo;
 
