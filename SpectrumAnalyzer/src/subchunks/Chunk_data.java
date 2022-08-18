@@ -19,6 +19,7 @@ public class Chunk_data extends SubChunks {
 //		this.setInfo("Data can be read from the waveform analyzer ---->");
 		data.setData(getData());
 		this.getInfoReservoir().setDataInfo(data);
+		this.getInfoReservoir().setWeight(this.getData().length);
 	}
 	
 	@Override

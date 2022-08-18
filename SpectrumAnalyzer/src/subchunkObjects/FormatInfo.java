@@ -1,6 +1,7 @@
 package subchunkObjects;
 
 import interfaces.Info;
+import tools.ValueParsingTools;
 
 public class FormatInfo implements Info {
 	/**
@@ -30,7 +31,7 @@ public class FormatInfo implements Info {
 	/**
 	 * Number of channels used
 	 */
-	private int channels;
+	private int nbChannels;
 	/**
 	 * Number of bytes used per block (One sample for each channel)
 	 */
@@ -38,11 +39,11 @@ public class FormatInfo implements Info {
 	/**
 	 * Variable containing the successive abbreviated channel names
 	 */
-	private String channelsLocation = "";
+	private String[] channelsLocation;
 	/**
 	 * Variable containing the successive non-abbreviated channel names
 	 */
-	private String channelsLocationLongName = "";
+	private String[] channelsLocationLongName;
 	
 	public int getFormat() {
 		return format;
@@ -84,12 +85,12 @@ public class FormatInfo implements Info {
 		this.bitRate = bitRate;
 	}
 
-	public int getChannels() {
-		return channels;
+	public int getNbChannels() {
+		return nbChannels;
 	}
 
-	public void setChannels(int channels) {
-		this.channels = channels;
+	public void setNbChannels(int nbChannels) {
+		this.nbChannels = nbChannels;
 	}
 
 	public int getBlockAlign() {
@@ -108,24 +109,34 @@ public class FormatInfo implements Info {
 		this.stringFormat = stringFormat;
 	}
 
-	public String getChannelsLocation() {
+	public String[] getChannelsLocation() {
 		return channelsLocation;
 	}
 
-	public void setChannelsLocation(String channelsLocation) {
+	public void setChannelsLocation(String[] channelsLocation) {
 		this.channelsLocation = channelsLocation;
 	}
 
-	public String getChannelsLocationLongName() {
+	public String[] getChannelsLocationLongName() {
 		return channelsLocationLongName;
 	}
 
-	public void setChannelsLocationLongName(String channelsLocationLongName) {
+	public void setChannelsLocationLongName(String[] channelsLocationLongName) {
 		this.channelsLocationLongName = channelsLocationLongName;
 	}
 
 	@Override
 	public String toString() {
-		return "format";
+		String formatString = "<B>General information about the file:</B><br/>";
+		formatString += "Format: " + stringFormat + "<br/>";
+		formatString += "Bits per sample: " + validBitsPerSample + "<br/>";
+		formatString += "Sample rate: " + ValueParsingTools.refinedMetrics(sampleRate) + "Hz<br/>";
+		formatString += "Number of channels: " + nbChannels + " channels<br/>";
+		formatString += "Bit rate: " + ValueParsingTools.refinedMetrics(bitRate) + "b/sec<br/>";
+		formatString += "Channel mapping: ";
+		for (int channel = 0; channel < channelsLocation.length; channel++) {
+			formatString += channelsLocation[channel] + " ";
+		}
+		return formatString;
 	}//End toString
 }

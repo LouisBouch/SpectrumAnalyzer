@@ -45,28 +45,28 @@ public class ValueParsingTools {
 		}
 		//Counts the milliseconds
 		if (time > milliS) {
-			nbMilliS = (int) (time / milliS);
+			nbMilliS = (int) Math.round((time / milliS));
 			time = time % milliS;
 			timeString += " " + nbMilliS + " ms";
 		}
 		return timeString;
 	}//End refinedTime
 	/**
-	 *  Takes a number of bytes and returns a better way of printing it
-	 * @param nbBytes The amount of byte
+	 *  Takes a number, truncates it to a smaller number and adds the appropriate suffix
+	 * @param number The number to put metrics to
 	 * @return The refined way of printing it
 	 */
-	public static String refinedByteSize(double nbBytes) {
-		String suffix = "b";
+	public static String refinedMetrics(double number) {
+		String suffix = "";
 		double divisor = 1;
-		if (nbBytes > 1E7) {
-			suffix = "Mb";
+		if (number > 1E6) {
+			suffix = "M";
 			divisor = 1E6;
 		}
-		else if (nbBytes > 1E4) {
-			suffix = "Kb";
+		else if (number > 1E3) {
+			suffix = "K";
 			divisor = 1E3;
 		}
-		return NumberManipulationTools.setDecimalPlaces(nbBytes/divisor, 3) + " " + suffix;
+		return NumberManipulationTools.setDecimalPlaces(number/divisor, 3) + " " + suffix;
 	}//End refinedByteSize
 }

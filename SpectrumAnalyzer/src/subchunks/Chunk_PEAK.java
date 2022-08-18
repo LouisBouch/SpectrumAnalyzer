@@ -1,16 +1,18 @@
 package subchunks;
 
+import subchunkObjects.PeakInfo;
 import tools.ByteManipulationTools;
-import tools.NumberManipulationTools;
 import wavParsingAndStoring.WavInfo;
 
 public class Chunk_PEAK extends SubChunks {
-	private String info;
+//	private String info;
 	
 	private double version;
 	private double timeStamp;
 	
 	private double[][] peaks;//[nbChannels][PeakValue]
+	
+	private PeakInfo peakInfo = new PeakInfo();
 	
 	public Chunk_PEAK(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
@@ -18,17 +20,19 @@ public class Chunk_PEAK extends SubChunks {
 		
 	}//End Chunk_PEAK
 	public void setInfo() {
-		info = "";
+//		info = "";
 		version = ByteManipulationTools.getDecimalValueUnsigned(getData(), 0, 4, ByteManipulationTools.LITTLEENDIAN);
 		timeStamp = ByteManipulationTools.getDecimalValueUnsigned(getData(), 4, 4, ByteManipulationTools.LITTLEENDIAN);
-		int nbChannels = (getData().length - 8) / 8;
+		int nbChannels = this.getInfoReservoir().getFormatInfo().getNbChannels();
 		peaks = new double[nbChannels][2];
 		for (int channel = 0; channel < nbChannels; channel++) {
 			peaks[channel][0] = ByteManipulationTools.getFloatingP32(getData(), 8 + 8 * channel, ByteManipulationTools.LITTLEENDIAN);
 			peaks[channel][1] = ByteManipulationTools.getDecimalValueUnsigned(getData(), 8 + 8 * channel + 4, 4, ByteManipulationTools.LITTLEENDIAN);
-			info += "Channel " + (channel + 1) + " peak: " + NumberManipulationTools.setDecimalPlaces(peaks[channel][0], 3) + ", at sample " + peaks[channel][1] + "<br/>";
+			peakInfo.addPeak(peaks[channel][0], (int) peaks[channel][1], this.getInfoReservoir().getFormatInfo().getChannelsLocationLongName()[channel], peaks[channel][1] / this.getInfoReservoir().getFormatInfo().getSampleRate());
+//			info += "Channel " + (channel + 1) + " peak: " + NumberManipulationTools.setDecimalPlaces(peaks[channel][0], 3) + ", at sample " + peaks[channel][1] + "<br/>";
 		}//End loop
-		this.setInfo(info);
+//		this.setInfo(info);
+		this.getInfoReservoir().setPeakInfo(peakInfo);
 	}//End setInfo
 	
 	public double getVersion() {

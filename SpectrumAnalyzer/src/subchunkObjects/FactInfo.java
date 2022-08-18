@@ -18,6 +18,8 @@ public class FactInfo implements Info {
 
 	@Override
 	public String toString() {
-		return "";
+		String factInfo = "<B>Additional file info:</B><br/>";
+		factInfo += "Number of sample frames: " + nbSampleFrames + " frames";
+		return factInfo;
 	}//End toString
 }

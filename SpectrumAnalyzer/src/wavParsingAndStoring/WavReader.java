@@ -22,7 +22,6 @@ public class WavReader {
 	//Constructor
 	public WavReader(byte[] binInfo, String fileName) {
 		infoReservoir = new WavInfo(binInfo, fileName);
-		System.out.println(infoReservoir);
 		this.binInfo = binInfo;
 		this.fileName = fileName;
 		getInfo();
@@ -31,7 +30,7 @@ public class WavReader {
 //			int fm = fmt.getDataFormat();
 //			int channels = fmt.getChannels();
 			FormatInfo formatInfo = infoReservoir.getFormatInfo();
-			int channels = formatInfo.getChannels();
+			int channels = formatInfo.getNbChannels();
 //			int bitsPerSample = fmt.getBitsPerSample();;
 			int bitsPerSample = formatInfo.getBitsPerSample();;
 			int validBitsPerSample = bitsPerSample;
@@ -82,7 +81,7 @@ public class WavReader {
 //		}
 
 		double[] temp = new double[8];
-		
+		boolean foundFmt = false;//Goes to true once the fmt subchunk has been found
 		//Reads all the subchunks and places them into the subChunk array
 		while (offset < fileSize) {
 			for (int i = 0; i < 8; i++) {
@@ -92,37 +91,42 @@ public class WavReader {
 
 			subChunkname = ("" + (char)temp[0] + (char)temp[1] + (char)temp[2] + (char)temp[3]);
 			subChunkSize = (int) (temp[4] + temp[5] * 256 + temp[6] * 256*256 +  temp[7] * 256*256*256);//Little endian (base 256)
-			//Uneven chunk sizes cause problems. This can be fixed by adding one byte
-			paddingByte = false;
-			if (subChunkSize % 2 != 0) {
-				subChunkSize++;
-				paddingByte = true;
+			if ((!foundFmt && subChunkname.equals("fmt ")) || (foundFmt && !subChunkname.equals("fmt "))) {//Makes sure the fmt is the first chunk to be loaded
+				//Uneven chunk sizes cause problems. This can be fixed by adding one byte
+				paddingByte = false;
+				if (subChunkSize % 2 != 0) {
+					subChunkSize++;
+					paddingByte = true;
+				}
+				subChunkData = new byte[subChunkSize];
+
+				//Fills the subChunkData field, which contains the data of the subchunk
+				for (int i = 0; i < subChunkSize; i++) {
+					subChunkData[i] = binInfo[offset + 8 + i];
+				}
+				try {
+					Class<?> subChunk = Class.forName("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
+					Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavInfo.class, boolean.class);
+					/*Object sub = */constructor.newInstance(subChunkname, 
+							subChunkSize, 
+							subChunkData,
+							infoReservoir, paddingByte);
+//					subChunks.put(subChunk.getName(), (SubChunks) sub);
+				}
+
+				catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ClassCastException e) {
+					System.out.println(e + ", cause: " + e.getCause());
+//					e.printStackTrace();
+//					subChunks.put("subChunk" + subChunks.size(), new SubChunks(subChunkname, subChunkSize, subChunkData, infoReservoir, paddingByte));
+
+				}
+
 			}
-			subChunkData = new byte[subChunkSize];
-			
-			//Fills the subChunkData field, which contains the data of the subchunk
-			for (int i = 0; i < subChunkSize; i++) {
-				subChunkData[i] = binInfo[offset + 8 + i];
-			}
-			try {
-//				System.out.println("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
-				Class<?> subChunk = Class.forName("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
-				Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavInfo.class, boolean.class);
-				/*Object sub = */constructor.newInstance(subChunkname, 
-						subChunkSize, 
-						subChunkData,
-						infoReservoir, paddingByte);
-//				subChunks.put(subChunk.getName(), (SubChunks) sub);
-			}
-			
-			catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException | ClassCastException e) {
-				System.out.println(e + ", cause: " + e.getCause());
-//				e.printStackTrace();
-//				subChunks.put("subChunk" + subChunks.size(), new SubChunks(subChunkname, subChunkSize, subChunkData, infoReservoir, paddingByte));
-				
-			}
-			
 			offset = offset + subChunkSize + 8;//+8 because the first 8 bytes are not taken into account
+			if (!foundFmt && subChunkname.equals("fmt ")) {
+				offset = 12;
+				foundFmt = true;
+			}
 		}
 		
 		//Compresses the information of the subchunks into a single string

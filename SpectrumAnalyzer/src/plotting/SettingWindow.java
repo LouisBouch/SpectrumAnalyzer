@@ -34,30 +34,32 @@ public class SettingWindow extends JFrame {
 	private static final long serialVersionUID = 5872177811395185412L;
 	private JPanel pane;
 	private Plot parent;
+	private WavInfo infoReservoir;
 	
 	private int possiblePlots;
-	private String[] detailedPossiblePlots;
+//	private String[] detailedPossiblePlots;
 	private int selectedPlot = 1;
 	private int[] selectedPlots;
 	
 	private int channelFontSize = 15;
 	
 
-	public SettingWindow(WavInfo InfoReservoir, Plot parent) {
+	public SettingWindow(WavInfo infoReservoir, Plot parent) {
 		this.parent = parent;
+		this.infoReservoir = infoReservoir;
 //		this.possiblePlots = parent.getNbPossiblePlots();
-		this.possiblePlots = InfoReservoir.getFormatInfo().getChannels();
+		this.possiblePlots = infoReservoir.getFormatInfo().getNbChannels();
 		
 		//Sets detailedPossiblePlots
 //		String singleStringDetailedPossiblePlots = ((Chunk_fmt) parent.getWavInfo().getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getChannelsLocationLongName();
-		String singleStringDetailedPossiblePlots = InfoReservoir.getFormatInfo().getChannelsLocationLongName();
-		detailedPossiblePlots = new String[possiblePlots];
-		for (int channel = 0; channel < possiblePlots; channel++) {
-			if (singleStringDetailedPossiblePlots == "") break;
-			detailedPossiblePlots[channel] = singleStringDetailedPossiblePlots.substring(0, singleStringDetailedPossiblePlots.indexOf('.'));
-			singleStringDetailedPossiblePlots = singleStringDetailedPossiblePlots.substring(singleStringDetailedPossiblePlots.indexOf('.') + 1, singleStringDetailedPossiblePlots.length());
-		}
-		detailedPossiblePlots[possiblePlots - 1] += " ";
+//		String singleStringDetailedPossiblePlots = InfoReservoir.getFormatInfo().getChannelsLocationLongName();
+//		detailedPossiblePlots = new String[possiblePlots];
+//		for (int channel = 0; channel < possiblePlots; channel++) {
+//			if (singleStringDetailedPossiblePlots == "") break;
+//			detailedPossiblePlots[channel] = singleStringDetailedPossiblePlots.substring(0, singleStringDetailedPossiblePlots.indexOf('.'));
+//			singleStringDetailedPossiblePlots = singleStringDetailedPossiblePlots.substring(singleStringDetailedPossiblePlots.indexOf('.') + 1, singleStringDetailedPossiblePlots.length());
+//		}
+//		detailedPossiblePlots[possiblePlots - 1] += " ";
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
@@ -136,7 +138,7 @@ public class SettingWindow extends JFrame {
 			green = Integer.toHexString(color.getGreen());
 			blue = Integer.toHexString(color.getBlue());
 			String hexColorFont = "<font color=#" + (red.length() == 1 ? (red = "0" + red) : red) + (green.length() == 1 ? (green = "0" + green) : green) + (blue.length() == 1 ? (blue = "0" + blue) : blue) + ">";
-			label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + detailedPossiblePlots[channel - 1]);
+			label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + infoReservoir.getFormatInfo().getChannelsLocationLongName()[channel - 1]);
 		}
 		label_legend.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		label_legend.setForeground(Color.BLACK);

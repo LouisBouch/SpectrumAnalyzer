@@ -73,6 +73,7 @@ public class WavInfo {
 
 	public void setFormatInfo(FormatInfo formatInfo) {
 		this.formatInfo = formatInfo;
+		allInfo.add(formatInfo);
 	}
 
 	public PeakInfo getPeakInfo() {
@@ -81,6 +82,7 @@ public class WavInfo {
 
 	public void setPeakInfo(PeakInfo peaks) {
 		this.peakInfo = peaks;
+		allInfo.add(peaks);
 	}
 	
 	public DataInfo getDataInfo() {
@@ -97,6 +99,7 @@ public class WavInfo {
 
 	public void setFactInfo(FactInfo factInfo) {
 		this.factInfo = factInfo;
+		allInfo.add(factInfo);
 	}
 	
 	public double getWeight() {
@@ -105,7 +108,7 @@ public class WavInfo {
 
 	public void setWeight(double weight) {
 		this.weight = weight;
-		weightString = ValueParsingTools.refinedByteSize(weight);
+		weightString = ValueParsingTools.refinedMetrics(weight) + "b";
 	}
 	
 	public double getTime() {
@@ -119,7 +122,12 @@ public class WavInfo {
 
 	@Override
 	public String toString() {
-		String string = fileName;
+		String string = "<html>" + "<B>Name:</B> " + fileName + "<br/><B>Weight:</B> " + weightString + "<br/><B>Audio length:</B> " + timeString;
+		for (int index = 0; index < allInfo.size(); index++) {
+			string += "<br/><br/>";
+			string += allInfo.get(index).toString();
+		}
+		string += "<html>";
 		return string;
 	}//End toString
 }

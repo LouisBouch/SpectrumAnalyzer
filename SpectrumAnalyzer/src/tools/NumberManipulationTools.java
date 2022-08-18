@@ -9,7 +9,7 @@ public class NumberManipulationTools {
 	 * @return The truncated double
 	 */
 	public static double setDecimalPlaces(double number, int decimalPlaces) {
-		return ((int) (number * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces);
+		return ((int) Math.round(number * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces);
 	}
 
 }

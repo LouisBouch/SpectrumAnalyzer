@@ -37,7 +37,7 @@ public class Chunk_fmt extends SubChunks {
 		//Gets the number of channels
 		int channels = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 2, 2, ByteManipulationTools.LITTLEENDIAN);
 //		info += "<br/>Number of channels: " + channels;
-		formatInfo.setChannels(channels);
+		formatInfo.setNbChannels(channels);
 
 		//Block align (Bytes for all samples)
 		int blockAlign = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 12, 2, ByteManipulationTools.LITTLEENDIAN);
@@ -66,16 +66,28 @@ public class Chunk_fmt extends SubChunks {
 			formatHandling(temp);
 		}
 		//Assigns the channels if they haven't been assigned
-		if (formatInfo.getChannelsLocationLongName() == "" && formatInfo.getChannelsLocation() == "") {
+		if (formatInfo.getChannelsLocationLongName() == null && formatInfo.getChannelsLocation() == null) {
+			String[] channelsLocation;
+			String[] channelsLocationLongName;
 			if (channels == 1) {
-				formatInfo.setChannelsLocation("LR");
-				formatInfo.setChannelsLocationLongName("Left and right.");
+				channelsLocation = new String[1];
+				channelsLocation[0] = "LR";
+				channelsLocationLongName = new String[1];
+				channelsLocationLongName[0] = "Left and right";
+				formatInfo.setChannelsLocation(channelsLocation);
+				formatInfo.setChannelsLocationLongName(channelsLocationLongName);
 //				channelsLocationLongName = "Left and right.";
 //				channelsLocation = "LR";
 			}
 			if (channels == 2) {
-				formatInfo.setChannelsLocation("FL FR");
-				formatInfo.setChannelsLocationLongName("Left.Right.");
+				channelsLocation = new String[2];
+				channelsLocation[0] = "FL";
+				channelsLocation[1] = "FR";
+				channelsLocationLongName = new String[2];
+				channelsLocationLongName[0] = "Left";
+				channelsLocationLongName[1] = "Right";
+				formatInfo.setChannelsLocation(channelsLocation);
+				formatInfo.setChannelsLocationLongName(channelsLocationLongName);
 //				channelsLocationLongName = "Left.Right.";
 //				channelsLocation = "FL FR";
 			}
@@ -115,18 +127,26 @@ public class Chunk_fmt extends SubChunks {
 			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
 			//Assigns channels to speakers
 			int assignedChannels = 0;
+			String[] channelsLocation = new String[formatInfo.getNbChannels()];
+			String[] channelsLocationLongName = new String[formatInfo.getNbChannels()];
 			for (int channel = 0; channel < bits.length; channel++) {
-				if (assignedChannels < formatInfo.getChannels()) {
+				if (assignedChannels < formatInfo.getNbChannels()) {
 					if (bits[bits.length - 1 - channel] != 0) {
 						/*channelsLocation += "Channel " + (i+1) + " = " + speakersInfo[i] + "; ";*/
 //						channelsLocation += speakersInfo[channel] + " ";
 //						channelsLocationLongName += speakersInfoLongName[channel] + ".";
-						formatInfo.setChannelsLocation(formatInfo.getChannelsLocation() + speakersInfo[channel] + " ");
-						formatInfo.setChannelsLocationLongName(formatInfo.getChannelsLocationLongName() + speakersInfoLongName[channel] + ".");
+//						formatInfo.setChannelsLocation(formatInfo.getChannelsLocation() + speakersInfo[channel] + " ");
+//						formatInfo.setChannelsLocationLongName(formatInfo.getChannelsLocationLongName() + speakersInfoLongName[channel] + ".");
+						channelsLocation[assignedChannels] = speakersInfo[channel];
+						channelsLocationLongName[assignedChannels] = speakersInfoLongName[channel];
 						assignedChannels++;
 					}
 				}
 				else break;
+			}
+			if (assignedChannels != 0) {
+				formatInfo.setChannelsLocation(channelsLocation);
+				formatInfo.setChannelsLocationLongName(channelsLocationLongName);
 			}
 //			if (assignedChannels != 0) {
 //				info += "<br/>Channels layout: " + channelsLocation.substring(0, channelsLocation.length() - 1);
