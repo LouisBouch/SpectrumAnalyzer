@@ -127,7 +127,7 @@ public class FormatInfo implements Info {
 
 	@Override
 	public String toString() {
-		String formatString = "<B>General information about the file:</B><br/>";
+		String formatString = "<B>Audio file specifications:</B><br/>";
 		formatString += "Format: " + stringFormat + "<br/>";
 		formatString += "Bits per sample: " + validBitsPerSample + "<br/>";
 		formatString += "Sample rate: " + ValueParsingTools.refinedMetrics(sampleRate) + "Hz<br/>";

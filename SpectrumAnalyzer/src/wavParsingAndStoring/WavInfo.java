@@ -7,6 +7,7 @@ import interfaces.Info;
 import subchunkObjects.DataInfo;
 import subchunkObjects.FactInfo;
 import subchunkObjects.FormatInfo;
+import subchunkObjects.Id3Info;
 import subchunkObjects.PeakInfo;
 import tools.ValueParsingTools;
 
@@ -50,9 +51,13 @@ public class WavInfo {
 	 */
 	private DataInfo dataInfo;
 	/**
-	 * Containts the amount of sample frames in the data file
+	 * Contains the amount of sample frames in the data file
 	 */
 	private FactInfo factInfo;
+	/**
+	 * Additional information about the audio file
+	 */
+	private Id3Info id3Info;
 	/**
 	 * Creates an object that contains all the information about the wav file
 	 * @param data The data in bytes
@@ -118,6 +123,15 @@ public class WavInfo {
 	public void setTime(double time) {
 		this.time = time;
 		timeString = ValueParsingTools.refinedTime(time);
+	}
+	
+	public Id3Info getId3Info() {
+		return id3Info;
+	}
+
+	public void setId3Info(Id3Info id3Info) {
+		this.id3Info = id3Info;
+		allInfo.add(id3Info);
 	}
 
 	@Override

@@ -2,11 +2,14 @@ package subchunks;
 
 import java.util.HashMap;
 
+import subchunkObjects.Id3Info;
 import tools.ByteManipulationTools;
 import wavParsingAndStoring.WavInfo;
 
 public class Chunk_id3 extends SubChunks{
-	private String info = "";
+//	private String info = "";
+	
+	private Id3Info id3Info = new Id3Info();
 	
 	private HashMap<String, String> headers = new HashMap<String, String>();
 	
@@ -48,10 +51,12 @@ public class Chunk_id3 extends SubChunks{
 				text = ByteManipulationTools.getStringFromBytes(getData(), byteOffset, headerSize);
 				byteOffset += headerSize;
 				
-				info += header + ":<br/>" + text + "<br/><br/>";
+				id3Info.addId3(header, text);
+//				info += header + ":<br/>" + text + "<br/><br/>";
 			}//End while loop
 		}
-		this.setInfo(info);
+//		this.setInfo(info);
+		this.getInfoReservoir().setId3Info(id3Info);
 	}//End getIDs
 	/**
 	 * Puts the headers inside the hashmap
