@@ -3,6 +3,7 @@ package subchunkObjects;
 import java.util.ArrayList;
 
 import interfaces.Info;
+import tools.StringTools;
 
 public class Id3Info implements Info {
 	/**
@@ -44,9 +45,7 @@ public class Id3Info implements Info {
 	@Override
 	public String toString() {
 		String idsString = "<B>Additional information about the audio file:</B><br/>";
-		for (int id = 0; id < ids.size(); id++) {
-			idsString += ids.get(id).getHeader() + ": " + ids.get(id).getText() + "<br/>";
-		}
+		idsString += StringTools.arrayListToString(ids);
 		return idsString;
 	}//End toString
 }

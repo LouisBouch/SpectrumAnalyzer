@@ -4,56 +4,55 @@ import tools.ValueParsingTools;
 
 public class Cue {
 	/**
-	 * The unique id of the cue
+	 * If a play list chunk exists, this value stores the byte position of the data/silent chunk that contains the cue. Otherwise, stores 0.
 	 */
-	private int id;
+	private int chunkStart;
 	/**
-	 * When the cue happens
+	 * Stores the byte position in the data chunk where the cue occurs.
 	 */
-	private int cuePosInTime;
+	private int cuePos;
 	/**
-	 * To which channel the cue belongs
+	 * Time in seconds at which the cue happens
 	 */
-	private String cueChannel;
+	private double cueTime;
 	/**
 	 * Creates a cue
-	 * @param id The unique id of the cue
-	 * @param cuePosInTime When the cue happens
-	 * @param cueChannel To which channel the cue belongs
+	 * @param chunkStart The chunk's starting position where the cue is contained
+	 * @param cuePos The sample in which the cue belongs
+	 * @param cueTime The time at which the cue happens
 	 */
-	public Cue(int id, int cuePosInTime, String cueChannel) {
-		this.id = id;
-		this.cuePosInTime = cuePosInTime;
-		this.cueChannel = cueChannel;
+	public Cue(int chunkStart, int cuePos, double cueTime) {
+		this.chunkStart = chunkStart;
+		this.cuePos = cuePos;
+		this.cueTime = cueTime;
 	}
 	
-	public int getId() {
-		return id;
+	public int getChunkStart() {
+		return chunkStart;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public void setChunkStart(int chunkStart) {
+		this.chunkStart = chunkStart;
 	}
 
-	public int getCuePosInTime() {
-		return cuePosInTime;
+	public int getCuePos() {
+		return cuePos;
 	}
 
-	public void setCuePosInTime(int cuePosInTime) {
-		this.cuePosInTime = cuePosInTime;
+	public void setCuePos(int cuePos) {
+		this.cuePos = cuePos;
 	}
 
-	public String getCueChannel() {
-		return cueChannel;
+	public double getCueTime() {
+		return cueTime;
 	}
 
-	public void setCueChannel(String cueChannel) {
-		this.cueChannel = cueChannel;
+	public void setCueTime(int cueTime) {
+		this.cueTime = cueTime;
 	}
 
 	@Override
 	public String toString() {
-		String cueString = "Cue at " + ValueParsingTools.refinedTime(cuePosInTime) + " on " + cueChannel + " channel<br/>";
-		return cueString;
-	}//End toString
+		return "Cue at " + ValueParsingTools.refinedTime(cueTime);
+	}
 }

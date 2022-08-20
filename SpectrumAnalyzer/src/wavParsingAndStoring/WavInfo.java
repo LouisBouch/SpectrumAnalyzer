@@ -150,7 +150,7 @@ public class WavInfo {
 
 	public void setCueInfo(CueInfo cueInfo) {
 		this.cueInfo = cueInfo;
-		allInfo.add(cueInfo);
+//		allInfo.add(cueInfo);
 	}
 
 	public ListInfo getListInfo() {

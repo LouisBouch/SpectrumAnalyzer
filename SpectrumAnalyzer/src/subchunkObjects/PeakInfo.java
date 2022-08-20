@@ -3,6 +3,7 @@ package subchunkObjects;
 import java.util.ArrayList;
 
 import interfaces.Info;
+import tools.StringTools;
 
 public class PeakInfo implements Info {
 	private ArrayList<Peak> peaks = new ArrayList<Peak>();
@@ -33,10 +34,8 @@ public class PeakInfo implements Info {
 	}
 	@Override
 	public String toString() {
-		String peakInfo = "<B>Peak info:</B><br/>";
-		for (int peak = 0; peak < peaks.size(); peak++) {
-			peakInfo += peaks.get(peak).toString() + "<br/>";
-		}
+		String peakInfo = "<B>Peak info:</B>";
+		peakInfo += StringTools.arrayListToString(peaks);
 		return peakInfo;
 	}//End toString
 }

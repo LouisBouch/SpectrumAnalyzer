@@ -132,7 +132,7 @@ public class Chunk_fmt extends SubChunks {
 			for (int index = 0; index < formatInfo.getNbChannels(); index++) {
 				NAString[index] = "N/A";
 			}
-			//Sets the real arrays
+			//Sets the real arrays-
 			String[] channelsLocationLongName = NAString.clone();
 			String[] channelsLocation = NAString.clone();
 			channelsLocation = NAString;

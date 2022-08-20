@@ -20,31 +20,31 @@ public class ValueParsingTools {
 		int nbHours;
 		int nbDays;
 		//Counts the days
-		if (time > day) {
+		if (time >= day) {
 			nbDays = (int) (time / day);
 			time = time % day;
 			timeString += nbDays + " dy";
 		}
 		//Counts the hours
-		if (time > hour) {
+		if (time >= hour) {
 			nbHours = (int) (time / hour);
 			time = time % hour;
 			timeString += " " + nbHours + " hr";
 		}
 		//Counts the minutes
-		if (time > minute) {
+		if (time >= minute) {
 			nbMinutes = (int) (time / minute);
 			time = time % minute;
 			timeString += " " + nbMinutes + " min";
 		}
 		//Counts the seconds
-		if (time > 1) {
+		if (time >= 1) {
 			nbSeconds = (int) (time);
 			time = time % 1;
 			timeString += " " + nbSeconds + " sec";
 		}
 		//Counts the milliseconds
-		if (time > milliS) {
+		if (time >= milliS) {
 			nbMilliS = (int) Math.round((time / milliS));
 			time = time % milliS;
 			timeString += " " + nbMilliS + " ms";
