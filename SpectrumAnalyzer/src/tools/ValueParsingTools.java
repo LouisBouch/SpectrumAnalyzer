@@ -49,6 +49,7 @@ public class ValueParsingTools {
 			time = time % milliS;
 			timeString += " " + nbMilliS + " ms";
 		}
+		if (timeString.equals("")) return "0 sec";
 		return timeString;
 	}//End refinedTime
 	/**

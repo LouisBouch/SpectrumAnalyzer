@@ -133,7 +133,7 @@ public class SettingWindow extends JFrame {
 		String green;
 		String blue;
 		for (int channel = 1; channel <= possiblePlots; channel++) {
-			color = parent.getColors()[channel - 1];
+			color = parent.getColors()[(channel - 1) % parent.getColors().length];
 			red = Integer.toHexString(color.getRed());
 			green = Integer.toHexString(color.getGreen());
 			blue = Integer.toHexString(color.getBlue());

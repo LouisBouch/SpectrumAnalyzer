@@ -1,15 +1,13 @@
 package subchunks;
 
+import subchunkObjects.CueInfo;
 import tools.ByteManipulationTools;
 import wavParsingAndStoring.WavInfo;
 
 public class Chunk_cue extends SubChunks {
-	private String info;
+	private CueInfo cueInfo = new CueInfo();
 	
-	private int nbCues;
-	private int[] chunkStart;
-	private int[] blockStart;
-	private int[] sampleStart;
+//	private String info;
 	
 	public Chunk_cue(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
@@ -19,14 +17,23 @@ public class Chunk_cue extends SubChunks {
 	 * Manages the cue points
 	 */
 	public void setInfo() {
-		info = "";
-		nbCues = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), 0, 4, ByteManipulationTools.LITTLEENDIAN);
+//		info = "";
+		int nbCues = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), 0, 4, ByteManipulationTools.LITTLEENDIAN);
+		System.out.println(ByteManipulationTools.getDecimalValueUnsigned(getData(), 4, 4, ByteManipulationTools.LITTLEENDIAN));
 		int byteOffset = 4;
 		for (int cue = 0; cue < nbCues; cue++) {
-			System.out.println("ID: " + ByteManipulationTools.getDecimalValueUnsigned(getData(), byteOffset, 4, ByteManipulationTools.LITTLEENDIAN));
+			int id = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), byteOffset, 4, ByteManipulationTools.LITTLEENDIAN);
+			byteOffset += 16;
+			int blockStartInByte = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), byteOffset, 4, ByteManipulationTools.LITTLEENDIAN);
+			int sampleNb = blockStartInByte / this.getInfoReservoir().getFormatInfo().getBlockAlign();
+			int cueTime = sampleNb / this.getInfoReservoir().getFormatInfo().getSampleRate();
 			byteOffset += 4;
-			System.out.println("Sample position: " + ByteManipulationTools.getDecimalValueUnsigned(getData(), byteOffset, 4, ByteManipulationTools.LITTLEENDIAN));
+			int blockOffset = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), byteOffset, 4, ByteManipulationTools.LITTLEENDIAN);
+			int channelNb = blockOffset / (this.getInfoReservoir().getFormatInfo().getBitsPerSample() / 8);
+			String channel = this.getInfoReservoir().getFormatInfo().getChannelsLocationLongName()[channelNb];
+			cueInfo.addCue(id, cueTime, channel);
 		}//End for loop
+		if (nbCues > 0) this.getInfoReservoir().setCueInfo(cueInfo);
 	}//End setInfo
 }
 //https://www.recordingblogs.com/wiki/cue-chunk-of-a-wave-file

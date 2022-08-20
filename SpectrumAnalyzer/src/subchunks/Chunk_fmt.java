@@ -127,8 +127,15 @@ public class Chunk_fmt extends SubChunks {
 			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
 			//Assigns channels to speakers
 			int assignedChannels = 0;
-			String[] channelsLocation = new String[formatInfo.getNbChannels()];
-			String[] channelsLocationLongName = new String[formatInfo.getNbChannels()];
+			//Creates string array with N/A inside
+			String[] NAString = new String[formatInfo.getNbChannels()];
+			for (int index = 0; index < formatInfo.getNbChannels(); index++) {
+				NAString[index] = "N/A";
+			}
+			//Sets the real arrays
+			String[] channelsLocationLongName = NAString.clone();
+			String[] channelsLocation = NAString.clone();
+			channelsLocation = NAString;
 			for (int channel = 0; channel < bits.length; channel++) {
 				if (assignedChannels < formatInfo.getNbChannels()) {
 					if (bits[bits.length - 1 - channel] != 0) {

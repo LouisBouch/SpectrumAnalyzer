@@ -4,10 +4,12 @@ package wavParsingAndStoring;
 import java.util.ArrayList;
 
 import interfaces.Info;
+import subchunkObjects.CueInfo;
 import subchunkObjects.DataInfo;
 import subchunkObjects.FactInfo;
 import subchunkObjects.FormatInfo;
 import subchunkObjects.Id3Info;
+import subchunkObjects.ListInfo;
 import subchunkObjects.PeakInfo;
 import tools.ValueParsingTools;
 
@@ -58,6 +60,14 @@ public class WavInfo {
 	 * Additional information about the audio file
 	 */
 	private Id3Info id3Info;
+	/**
+	 * Information about the cues
+	 */
+	private CueInfo cueInfo;
+	/**
+	 * Additional information about the audio file
+	 */
+	private ListInfo listInfo;
 	/**
 	 * Creates an object that contains all the information about the wav file
 	 * @param data The data in bytes
@@ -132,6 +142,24 @@ public class WavInfo {
 	public void setId3Info(Id3Info id3Info) {
 		this.id3Info = id3Info;
 		allInfo.add(id3Info);
+	}
+	
+	public CueInfo getCueInfo() {
+		return cueInfo;
+	}
+
+	public void setCueInfo(CueInfo cueInfo) {
+		this.cueInfo = cueInfo;
+		allInfo.add(cueInfo);
+	}
+
+	public ListInfo getListInfo() {
+		return listInfo;
+	}
+
+	public void setListInfo(ListInfo listInfo) {
+		this.listInfo = listInfo;
+		allInfo.add(listInfo);
 	}
 
 	@Override

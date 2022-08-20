@@ -35,7 +35,7 @@ public class Plot extends JPanel {
 	
 	private final double EPSILON = 1e-10;//Uncertainty value 
 	
-	private Color[] colors = {Color.GREEN, Color.YELLOW, Color.RED, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE}; 
+	private Color[] colors = {Color.GREEN, Color.YELLOW, Color.RED, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK}; 
 
 	private double[][] values;//The values of the plot for all different channels
 	

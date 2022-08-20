@@ -24,16 +24,21 @@ public class Id3Info implements Info {
 	 * Adds a new id using a header and the header information
 	 * @param header Information header
 	 * @param text Information
+	 * @return Returns the added id3
 	 */
-	public void addId3(String header, String text) {
-		ids.add(new Id3(header, text));
+	public Id3 addId3(String header, String text) {
+		Id3 id3 = new Id3(header, text);
+		ids.add(id3);
+		return id3;
 	}
 	/**
 	 * Adds a new id
 	 * @param id The id to add
+	 * @return Returns the added id3
 	 */
-	public void addId3(Id3 id) {
+	public Id3 addId3(Id3 id) {
 		ids.add(id);
+		return id;
 	}
 
 	@Override
