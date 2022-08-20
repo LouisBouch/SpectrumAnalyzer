@@ -2,10 +2,9 @@ package subchunks;
 
 import wavParsingAndStoring.WavInfo;
 
-public class SubChunks {
+public abstract class SubChunks {
 	private String subChunkName;
 	private int subChunkSize;
-	private String info = "NO AVAILABLE INFO";
 	private byte[] data;
 	private boolean paddingByte;
 	private WavInfo infoReservoir;
@@ -46,20 +45,6 @@ public class SubChunks {
 		return data;
 	}
 	/**
-	 * Gets the info of the subchunk
-	 * @return data info
-	 */
-	public String getInfo() {
-		return info;
-	}
-	/**
-	 * Allows for the info field to be set
-	 * @param info String of information about the subchunk
-	 */
-	public void setInfo(String info) {
-		this.info = info;
-	}
-	/**
 	 * Checks if a padding byte was added
 	 * @return Whether the padding bit was added or not 
 	 */
@@ -73,8 +58,13 @@ public class SubChunks {
 	public WavInfo getInfoReservoir() {
 		return infoReservoir;
 	}
+	/**
+	 * Sets various varaibles and fields relevant to the subChunk
+	 */
+	public abstract void setInfo();
+	
 	@Override
 	public String toString() {
-		return "<B>subchunk:</B> " + subChunkName + "<br/>" + info;
+		return "<B>subchunk:</B> " + subChunkName;
 	}
 }

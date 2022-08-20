@@ -16,9 +16,11 @@ public class Chunk_PEAK extends SubChunks {
 	
 	public Chunk_PEAK(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
-		setInfo();
-		
 	}//End Chunk_PEAK
+	/**
+	 * Sets the necessary information
+	 */
+	@Override
 	public void setInfo() {
 //		info = "";
 		version = ByteManipulationTools.getDecimalValueUnsigned(getData(), 0, 4, ByteManipulationTools.LITTLEENDIAN);

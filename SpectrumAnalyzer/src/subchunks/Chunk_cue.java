@@ -11,11 +11,11 @@ public class Chunk_cue extends SubChunks {
 	
 	public Chunk_cue(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
-		setInfo();
 	}//End Chunk_cue
 	/**
 	 * Manages the cue points
 	 */
+	@Override
 	public void setInfo() {
 		int nbCues = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), 0, 4, ByteManipulationTools.LITTLEENDIAN);
 		int byteOffset = 4;

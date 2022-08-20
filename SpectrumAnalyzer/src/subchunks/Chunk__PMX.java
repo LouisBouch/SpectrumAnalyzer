@@ -7,4 +7,9 @@ public class Chunk__PMX  extends SubChunks{
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 	}
 
+	@Override
+	public void setInfo() {
+		
+	}
+
 }

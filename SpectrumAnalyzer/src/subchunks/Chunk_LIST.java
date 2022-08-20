@@ -16,11 +16,11 @@ public class Chunk_LIST extends SubChunks{
 //	private String typeID;
 	public Chunk_LIST(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
-		setInfo();
 	}//End Chunk_LIST
 	/**
 	 * Handles the information
 	 */
+	@Override
 	public void setInfo() {
 //		info = "";
 		String typeID = ByteManipulationTools.getStringFromBytes(getData(), 0, 4);
@@ -65,7 +65,7 @@ public class Chunk_LIST extends SubChunks{
 					byteOffset += 4;
 					text = ByteManipulationTools.getStringFromBytes(getData(), byteOffset, size - 4);
 					byteOffset += size - 4;
-					byteOffset = byteOffset % 2 == 1 ? byteOffset++ : byteOffset;//Pads the byteOffset if it ends up on an odd number.
+					byteOffset = byteOffset % 2 == 1 ? ++byteOffset : byteOffset;//Pads the byteOffset if it ends up on an odd number.
 					listInfo.addList_Cue(cue, text);
 				}		
 			}

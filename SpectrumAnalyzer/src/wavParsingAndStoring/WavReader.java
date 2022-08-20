@@ -2,12 +2,15 @@ package wavParsingAndStoring;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import subchunkObjects.FormatInfo;
+import subchunks.SubChunks;
 import tools.ByteManipulationTools;
 
 public class WavReader {
 //	private LinkedHashMap<String, SubChunks> subChunks = new LinkedHashMap<String, SubChunks>();
+	private ArrayList<SubChunks> subChunks = new ArrayList<>();
 	//General information
 	private byte[] binInfo;
 	
@@ -107,10 +110,11 @@ public class WavReader {
 				try {
 					Class<?> subChunk = Class.forName("subchunks.Chunk_" + subChunkname.replaceAll("\\s", ""));
 					Constructor<?> constructor = subChunk.getConstructor(String.class, int.class, byte[].class, WavInfo.class, boolean.class);
-					/*Object sub = */constructor.newInstance(subChunkname, 
+					Object sub = constructor.newInstance(subChunkname, 
 							subChunkSize, 
 							subChunkData,
 							infoReservoir, paddingByte);
+					if (sub instanceof SubChunks) subChunks.add((SubChunks) sub);
 //					subChunks.put(subChunk.getName(), (SubChunks) sub);
 				}
 
@@ -128,7 +132,10 @@ public class WavReader {
 				foundFmt = true;
 			}
 		}
-		
+		//Sets the information for all the subchunks
+		for (int subC = 0; subC < subChunks.size(); subC++) {
+			subChunks.get(subC).setInfo();
+		}
 		//Compresses the information of the subchunks into a single string
 		double time = findTime();
 		infoReservoir.setTime(time);

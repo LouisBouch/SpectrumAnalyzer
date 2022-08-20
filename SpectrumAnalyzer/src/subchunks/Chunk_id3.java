@@ -24,11 +24,11 @@ public class Chunk_id3 extends SubChunks{
 	public Chunk_id3(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 		setHeaders();
-		setInfo();
 	}//End Chunk_id3
 	/**
 	 * Obtains the headers and general information about the file
 	 */
+	@Override
 	public void setInfo() {
 //		tag = ByteManipulationTools.getStringFromBytes(getData(), 0, 3);
 		majorVersion = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), 3, 1, ByteManipulationTools.BIGENDIAN);

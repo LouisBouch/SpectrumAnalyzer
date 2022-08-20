@@ -15,12 +15,12 @@ public class Chunk_fmt extends SubChunks {
 	public Chunk_fmt(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
 		formatInitializer();
-		setInfo();
 	}
 	
 	/**
 	 * Sets the info for the current subchunk
 	 */
+	@Override
 	public void setInfo() {
 		int[] temp = new int[this.getSubChunkSize()];
 		for (int i = 0; i < this.getSubChunkSize(); i++) {

@@ -10,11 +10,11 @@ public class Chunk_fact extends SubChunks{
 	
 	public Chunk_fact(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
-		setInfo();	
 	}
 	/**
 	 * Sets the info for the current subchunk
 	 */
+	@Override
 	public void setInfo() {
 		int[] temp = new int[this.getSubChunkSize()];
 		for (int i = 0; i < this.getSubChunkSize(); i++) {

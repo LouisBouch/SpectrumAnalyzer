@@ -9,14 +9,13 @@ public class Chunk_data extends SubChunks {
 
 	public Chunk_data(String subChunkName, int subChunkSize, byte[] data, WavInfo infoReservoir, boolean paddingByte) {
 		super(subChunkName, subChunkSize, data, infoReservoir, paddingByte);
-		setInfo();
 	}
 	
 	/**
 	 * Sets the info for the current subchunk
 	 */
+	@Override
 	public void setInfo() {
-//		this.setInfo("Data can be read from the waveform analyzer ---->");
 		data.setData(getData());
 		this.getInfoReservoir().setDataInfo(data);
 		this.getInfoReservoir().setWeight(this.getData().length);
@@ -24,7 +23,7 @@ public class Chunk_data extends SubChunks {
 	
 	@Override
 	public String toString() {
-		return "<B>subchunk:</B> " + this.getSubChunkName() + "<br/>" + this.getInfo();
+		return "<B>subchunk:</B> " + this.getSubChunkName();
 	}
 
 }
