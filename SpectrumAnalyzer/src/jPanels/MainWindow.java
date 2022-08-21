@@ -39,7 +39,7 @@ public class MainWindow extends JPanel {
 	 * Creates the window that contains the wave information
 	 */
 	public MainWindow() {	
-		setBounds(0, 0, ScreenSizeTool.width , ScreenSizeTool.height - 63);	
+		setBounds(0, 0, ScreenSizeTool.WIDTH , ScreenSizeTool.HEIGHT - 63);	
 		setBackground(new Color(80, 85, 110));
 		setLayoutDim();
 		setLayout(new MigLayout("", col, row));

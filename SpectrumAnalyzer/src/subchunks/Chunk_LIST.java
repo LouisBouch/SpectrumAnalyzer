@@ -64,6 +64,7 @@ public class Chunk_LIST extends SubChunks{
 					cue = cues.get(cueId);
 					byteOffset += 4;
 					text = ByteManipulationTools.getStringFromBytes(getData(), byteOffset, size - 4);
+					text = text.replaceAll("\n+", "\n");
 					byteOffset += size - 4;
 					byteOffset = byteOffset % 2 == 1 ? ++byteOffset : byteOffset;//Pads the byteOffset if it ends up on an odd number.
 					listInfo.addList_Cue(cue, text);

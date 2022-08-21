@@ -21,8 +21,8 @@ public class InfoPanel extends JPanel {
 
 	private static final long serialVersionUID = -3472014902506067567L;
 	private JPanel panel = this;
-	private int width = ScreenSizeTool.width * 1/4;
-	private int height = ScreenSizeTool.height * 1/2;
+	private int width = ScreenSizeTool.WIDTH * 1/4;
+	private int height = ScreenSizeTool.HEIGHT * 1/2;
 	
 	private JLabel lbl_textInfo;
 	private Color backGroundColor = new Color(50, 55, 80);
