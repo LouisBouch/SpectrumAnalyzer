@@ -50,7 +50,7 @@ public class WavReader {
 			tIni = System.nanoTime();
 			double[][] channelSeparatedData = handlingRawData(formatInfo.getFormat(), validBitsPerSample, bitsPerSample, channels, rawData);
 			tFin = System.nanoTime();
-			System.out.println((tFin - tIni) / 1E6);
+			System.out.println((tFin - tIni) / 1E6 + "ms");
 			infoReservoir.getDataInfo().setChannelSeparatedData(channelSeparatedData);
 			
 		}
