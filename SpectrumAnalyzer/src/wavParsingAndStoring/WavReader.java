@@ -191,7 +191,6 @@ public class WavReader {
 				if (validBitsPerSample > 8) channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN);
 				else channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueUnsigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN) - eightBitOffset;
 				channelSeparatedData[channel][sample] /= ratio;
-				
 			}
 		}
 		return channelSeparatedData;
