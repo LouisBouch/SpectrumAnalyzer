@@ -152,7 +152,6 @@ public class ByteManipulationTools {
 		answer = exp < 0 ? answer / (1 << -exp) : answer * (1 << exp);
 		return sign == 0 ? answer : -answer;
 	}
-	
 	/**
 	 * Gets the string from consecutive bytes
 	 * @param data The data to take the information from
