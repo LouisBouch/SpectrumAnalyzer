@@ -28,7 +28,8 @@ public class Chunk_PEAK extends SubChunks {
 		int nbChannels = this.getInfoReservoir().getFormatInfo().getNbChannels();
 		peaks = new double[nbChannels][2];
 		for (int channel = 0; channel < nbChannels; channel++) {
-			peaks[channel][0] = ByteManipulationTools.getFloatingP32(getData(), 8 + 8 * channel, ByteManipulationTools.LITTLEENDIAN);
+//			peaks[channel][0] = ByteManipulationTools.getFloatingP32(getData(), 8 + 8 * channel, ByteManipulationTools.LITTLEENDIAN);
+			peaks[channel][0] = ByteManipulationTools.getFloatingP32((int) ByteManipulationTools.getDecimalValueSigned(getData(), 8 + 8 * channel, 4, ByteManipulationTools.LITTLEENDIAN));
 			peaks[channel][1] = ByteManipulationTools.getDecimalValueUnsigned(getData(), 8 + 8 * channel + 4, 4, ByteManipulationTools.LITTLEENDIAN);
 			peakInfo.addPeak(peaks[channel][0], (int) peaks[channel][1], this.getInfoReservoir().getFormatInfo().getChannelsLocationLongName()[channel], peaks[channel][1] / this.getInfoReservoir().getFormatInfo().getSampleRate());
 //			info += "Channel " + (channel + 1) + " peak: " + NumberManipulationTools.setDecimalPlaces(peaks[channel][0], 3) + ", at sample " + peaks[channel][1] + "<br/>";

@@ -128,33 +128,6 @@ public class ByteManipulationTools {
 		}
 		return value;
 	}
-	
-	/**
-	 * Takes 4 bytes of data and computes the float representation using IEEE-754
-	 * @param data The bytes
-	 * @param start The starting point
-	 * @return The float
-	 */
-	public static double getFloatingP32(byte[] data, int start, int endianness) {
-		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 4, endianness), 32, UNSIGNED);
-		
-		//Sign
-		int sign = bits[0] == 1 ? -1 : 1;
-		//Exponent
-		int exp = (int) getDecimalFromBits(bits, 1, 8) - 127;
-		//Denormalized
-		boolean denormalized = exp == -127 ? true : false;
-		double mantissa = denormalized ? 0 : 1;
-		if (denormalized) exp = -126;
-		int bitOffset = 9;
-		
-		//Mantissa
-		for (int bit = bitOffset; bit < 32; bit++) {
-			mantissa += bits[bit] * Math.pow(2, -(bit - bitOffset + 1));
-		}
-		
-		return sign * Math.pow(2, exp) * mantissa;
-	}
 	/**
 	 * Takes 4 bytes of data and computes the float representation using IEEE-754
 	 * @param data The bytes
@@ -175,85 +148,6 @@ public class ByteManipulationTools {
 		//Final answer
 		double answer = mantissa * Math.pow(2, -23 + exp);
 		return sign == 0 ? answer : -answer;
-	}
-	/**
-	 * Takes 4 bytes of data and computes the float representation using IEEE-754
-	 * @param data The bytes
-	 * @param start The starting point
-	 * @return The float
-	 */
-	public static double getFloatingP32(int[] data, int start, int endianness) {
-		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 4, endianness), 32);
-		
-		//Sign
-		int sign = bits[0] == 1 ? -1 : 1;
-		//Exponent
-		int exp = (int) getDecimalFromBits(bits, 1, 8) - 127;
-		//Denormalized
-		boolean denormalized = exp == -127 ? true : false;
-		double mantissa = denormalized ? 0 : 1;
-		if (denormalized) exp = -126;
-		int bitOffset = 9;
-		
-		//Mantissa
-		for (int bit = bitOffset; bit < 32; bit++) {
-			mantissa += bits[bit] * Math.pow(2, -(bit - bitOffset + 1));
-		}
-		
-		return sign * Math.pow(2, exp) * mantissa;
-	}
-	/**
-	 * Takes 1 byte of data and computes the float representation using IEEE-754
-	 * @param data The bytes
-	 * @param start The starting point
-	 * @return The float
-	 */
-	public static double getFloatingP8(int[] data, int start, int endianness) {
-		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 1, endianness), 8);
-		
-		//Sign
-		int sign = bits[0] == 1 ? -1 : 1;
-		//Exponent
-		int exp = (int) getDecimalFromBits(bits, 1, 3) - 3;
-		//Denormalized
-		boolean denormalized = exp == -3 ? true : false;
-		double mantissa = denormalized ? 0 : 1;
-		if (denormalized) exp = -2;
-		int bitOffset = 4;
-		
-		//Mantissa
-		for (int bit = bitOffset; bit < 8; bit++) {
-			mantissa += bits[bit] * Math.pow(2, -(bit - bitOffset + 1));
-		}
-		
-		return sign * Math.pow(2, exp) * mantissa;
-	}
-	/**
-	 * Takes 1 byte of data and computes the float representation using IEEE-754
-	 * @param data The bytes
-	 * @param start The starting point
-	 * @return The float
-	 */
-	public static double getFloatingP8(byte[] data, int start, int endianness) {
-		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 1, endianness), 8, ByteManipulationTools.UNSIGNED);
-		
-		//Sign
-		int sign = bits[0] == 1 ? -1 : 1;
-		//Exponent
-		int exp = (int) getDecimalFromBits(bits, 1, 3) - 3;
-		//Denormalized
-		boolean denormalized = exp == -3 ? true : false;
-		double mantissa = denormalized ? 0 : 1;
-//		double mantissa = 1;
-		if (denormalized) exp = -2;
-		int bitOffset = 4;
-		
-		//Mantissa
-		for (int bit = bitOffset; bit < 8; bit++) {
-			mantissa += bits[bit] * Math.pow(2, -(bit - bitOffset + 1));
-		}
-		
-		return sign * Math.pow(2, exp) * mantissa;
 	}
 	/**
 	 * Gets the string from consecutive bytes
