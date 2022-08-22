@@ -239,8 +239,9 @@ public class Plot extends JPanel {
 							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
 
 							//First way to draw
-							yIni = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[0] * yPixelsPerUnit);
-							yFin = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[1] * yPixelsPerUnit);
+							double[] minMax = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength);
+							yIni = yOffset - (int) Math.round(minMax[0] * yPixelsPerUnit);
+							yFin = yOffset - (int) Math.round(minMax[1] * yPixelsPerUnit);
 
 
 							g2d.drawLine(xIni, yOffset, xFin, yFin);

@@ -19,6 +19,9 @@ public class WavReader {
 	private final int MULAW = 0;
 	private final int ALAW = 1;
 	
+	private double tIni;
+	private double tFin;
+	
 	//Constructor
 	public WavReader(byte[] binInfo, String fileName) {
 		infoReservoir = new WavInfo(binInfo, fileName);
@@ -44,7 +47,10 @@ public class WavReader {
 //			byte[] rawData = data.getData();
 			byte[] rawData = infoReservoir.getDataInfo().getData();
 			
+			tIni = System.nanoTime();
 			double[][] channelSeparatedData = handlingRawData(formatInfo.getFormat(), validBitsPerSample, bitsPerSample, channels, rawData);
+			tFin = System.nanoTime();
+			System.out.println((tFin - tIni) / 1E6);
 			infoReservoir.getDataInfo().setChannelSeparatedData(channelSeparatedData);
 			
 		}
@@ -176,6 +182,7 @@ public class WavReader {
 		int sampleByteOffset = nbChannels*storedBytesPerSample;//Offset of bytes between different samples
 		int initialOffsetPerChannel; //Each channel has an offset
 		int eightBitOffset = 128;//With 8 bits, the mid value is 128 instead of 0. This requires an offset to be added
+		double ratio = Math.pow(2, Math.ceil(bitsPerSample / 8.0) * 8 - 1);
 		
 		double[][] channelSeparatedData = new double[nbChannels][samplesPerChannel];
 		//Separates the data from the different channels
@@ -185,7 +192,7 @@ public class WavReader {
 				//8 bits samples are unsigned
 				if (validBitsPerSample > 8) channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN);
 				else channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueUnsigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN) - eightBitOffset;
-				channelSeparatedData[channel][sample] /= Math.pow(2, Math.ceil(bitsPerSample / 8.0) * 8 - 1);
+				channelSeparatedData[channel][sample] /= ratio;
 			}
 		}
 		return channelSeparatedData;
@@ -211,7 +218,8 @@ public class WavReader {
 		for (int channel = 0; channel < nbChannels; channel++) {
 			initialOffsetPerChannel = channel * storedBytesPerSample;
 			for (int sample = 0; sample < samplesPerChannel; sample++) {
-				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32(rawData, initialOffsetPerChannel + sampleByteOffset * sample, ByteManipulationTools.LITTLEENDIAN);
+//				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32(rawData, initialOffsetPerChannel + sampleByteOffset * sample, ByteManipulationTools.LITTLEENDIAN);
+				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32((int)ByteManipulationTools.getDecimalValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, 4, ByteManipulationTools.LITTLEENDIAN));
 			}
 		}
 		return channelSeparatedData;

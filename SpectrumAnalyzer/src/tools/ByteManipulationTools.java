@@ -161,6 +161,27 @@ public class ByteManipulationTools {
 	 * @param start The starting point
 	 * @return The float
 	 */
+	public static double getFloatingP32(int bytes) {
+		//Get sign
+		int sign = bytes & 0x80000000;
+		//Get exponent
+		int exp = ((bytes & 0x7F800000) >> 23) - 127;
+		//Get denormalization
+		boolean denormalized = exp == -127 ? true : false;
+		exp = denormalized ? -126 : exp;
+		//Mantissa
+		int mantissa = bytes & 0x7FFFFF;
+		mantissa += denormalized ? 0 : 0x800000;//second equation equivalent to 1 << 23
+		//Final answer
+		double answer = mantissa * Math.pow(2, -23 + exp);
+		return sign == 0 ? answer : -answer;
+	}
+	/**
+	 * Takes 4 bytes of data and computes the float representation using IEEE-754
+	 * @param data The bytes
+	 * @param start The starting point
+	 * @return The float
+	 */
 	public static double getFloatingP32(int[] data, int start, int endianness) {
 		byte[] bits = decimalToBits(getDecimalValueUnsigned(data, start, 4, endianness), 32);
 		
