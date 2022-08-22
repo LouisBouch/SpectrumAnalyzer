@@ -33,14 +33,11 @@ public class ByteManipulationTools {
 	 */
 	public static double getDecimalValueSigned(int[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
-//		double temp;
-		long temp;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-//			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
-//			else value += temp * Math.pow(256, i);
-			if (endianness == BIGENDIAN ) value += temp << (8 * (nbBytes - 1 - i));
-			else value += temp << (8 * i);
+			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		//if the last bit is a 1, gets the negative of the two's complement
 		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
@@ -54,22 +51,15 @@ public class ByteManipulationTools {
 	 * @return The value of the bytes
 	 */
 	public static double getDecimalValueSigned(byte[] data, int start, int nbBytes, int endianness) {
-//		double value = 0;
-		long value = 0;
-//		double temp;
-		long temp;
+		double value = 0;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-//			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
-//			else value += temp * Math.pow(256, i);
-			if (endianness == BIGENDIAN ) value += temp << (8 * (nbBytes - 1 - i));
-			else value += temp << (8 * i);
+			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		//if the last bit is a 1, gets the negative of the two's complement
-//		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
-		if ((value & (1 << (8*nbBytes - 1))) > 0) {
-			value += 0xFFFFFFFFFFFFFFFFL << (8*nbBytes);
-		}
+		if (value >= (int) Math.pow(2, nbBytes * 8 - 1)) value -= Math.pow(256, nbBytes);
 		return value;
 	}
 	
@@ -82,14 +72,11 @@ public class ByteManipulationTools {
 	 */
 	public static double getDecimalValueUnsigned(int[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
-//		double temp;
-		long temp;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-//			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
-//			else value += temp * Math.pow(256, i);
-			if (endianness == BIGENDIAN ) value += temp << (8 * (nbBytes - 1 - i));
-			else value += temp << (8 * i);
+			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		return value;
 	}
@@ -102,14 +89,11 @@ public class ByteManipulationTools {
 	 */
 	public static double getDecimalValueUnsigned(byte[] data, int start, int nbBytes, int endianness) {
 		double value = 0;
-//		double temp;
-		long temp;
+		double temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-//			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
-//			else value += temp * Math.pow(256, i);
-			if (endianness == BIGENDIAN ) value += temp << (8 * (nbBytes - 1 - i));
-			else value += temp << (8 * i);
+			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
+			else value += temp * Math.pow(256, i);
 		}
 		return value;
 		

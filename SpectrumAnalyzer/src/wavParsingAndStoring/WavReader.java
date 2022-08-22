@@ -163,6 +163,8 @@ public class WavReader {
 		if (format == 3) return getPCMFloatData(storedBytesPerSample, validBitsPerSample, bitsPerSample, nbChannels, rawData);
 		if (format == 6) return getDecodedLaw(nbChannels, rawData, ALAW);
 		if (format == 7) return getDecodedLaw(nbChannels, rawData, MULAW);
+			
+		
 		return null;
 	}
 	/**
@@ -191,7 +193,6 @@ public class WavReader {
 				if (validBitsPerSample > 8) channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN);
 				else channelSeparatedData[channel][sample] = ByteManipulationTools.getDecimalValueUnsigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, storedBytesPerSample, ByteManipulationTools.LITTLEENDIAN) - eightBitOffset;
 				channelSeparatedData[channel][sample] /= ratio;
-				
 			}
 		}
 		return channelSeparatedData;
@@ -206,8 +207,7 @@ public class WavReader {
 	 * @return The data separated into channels
 	 */
 	public double[][] getPCMFloatData(int storedBytesPerSample, int validBitsPerSample, int bitsPerSample, int nbChannels, byte[] rawData) {
-		if (storedBytesPerSample != 4) return null;
-		
+		if (storedBytesPerSample != 4) return new double[1][0];
 		int bytesPerChannels = rawData.length/nbChannels;//Number of bytes for a given channel
 		int samplesPerChannel = bytesPerChannels / storedBytesPerSample;//Total amount of samples / number of channels
 		int sampleByteOffset = nbChannels*storedBytesPerSample;//Offset of bytes between different samples
@@ -218,6 +218,7 @@ public class WavReader {
 		for (int channel = 0; channel < nbChannels; channel++) {
 			initialOffsetPerChannel = channel * storedBytesPerSample;
 			for (int sample = 0; sample < samplesPerChannel; sample++) {
+//				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32(rawData, initialOffsetPerChannel + sampleByteOffset * sample, ByteManipulationTools.LITTLEENDIAN);
 				channelSeparatedData[channel][sample] = ByteManipulationTools.getFloatingP32((int)ByteManipulationTools.getDecimalValueSigned(rawData, initialOffsetPerChannel + sampleByteOffset * sample, 4, ByteManipulationTools.LITTLEENDIAN));
 			}
 		}
@@ -289,4 +290,25 @@ public class WavReader {
 	public WavInfo getInfoReservoir() {
 		return infoReservoir;
 	}
+//	/**
+//	 * Gets information about the Wav file
+//	 * @return The information
+//	 */
+//	public String getFileInfo() {
+//		return fileInfo;
+//	}
+//	/**
+//	 * Gets data from each channels
+//	 * @return The data
+//	 */
+//	public double[][] getChannelSeparatedData() {
+//		return channelSeparatedData;
+//	}
+//	/**
+//	 * Gets all the subchunks
+//	 * @return The subchunks
+//	 */
+//	public LinkedHashMap<String, SubChunks> getSubChunks() {
+//		return subChunks;
+//	}
 }
