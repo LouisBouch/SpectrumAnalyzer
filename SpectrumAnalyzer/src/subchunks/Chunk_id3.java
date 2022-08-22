@@ -34,7 +34,7 @@ public class Chunk_id3 extends SubChunks{
 		majorVersion = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), 3, 1, ByteManipulationTools.BIGENDIAN);
 //		revisionNumber = (int) ByteManipulationTools.getDecimalValueUnsigned(getData(), 4, 1, ByteManipulationTools.BIGENDIAN);
 		if (majorVersion == 2 || majorVersion == 3 || majorVersion == 4) {//Checks the version
-			byte[]  bits = ByteManipulationTools.decimalToBits(ByteManipulationTools.getDecimalValueUnsigned(getData(), 5, 1, ByteManipulationTools.BIGENDIAN), 8) ;
+			byte[]  bits = ByteManipulationTools.decimalToBits(ByteManipulationTools.getDecimalValueUnsigned(getData(), 5, 1, ByteManipulationTools.BIGENDIAN), 8, ByteManipulationTools.UNSIGNED) ;
 			if (bits[0] == 1 ) unsync = true;
 			if (bits[1] == 1 ) compression = true;
 			if (unsync || compression) return;//I don't yet know what to do when those flags are set

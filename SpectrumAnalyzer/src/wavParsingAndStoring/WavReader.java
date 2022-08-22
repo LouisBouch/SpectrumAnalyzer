@@ -9,18 +9,15 @@ import subchunks.SubChunks;
 import tools.ByteManipulationTools;
 
 public class WavReader {
-//	private LinkedHashMap<String, SubChunks> subChunks = new LinkedHashMap<String, SubChunks>();
 	private ArrayList<SubChunks> subChunks = new ArrayList<>();
-	//General information
 	private byte[] binInfo;
 	
 	private String fileName;
-//	private String fileInfo;
 	
 	private WavInfo infoReservoir;
 	
-//	//Data values
-//	private double[][] channelSeparatedData;
+	private final int MULAW = 0;
+	private final int ALAW = 1;
 	
 	//Constructor
 	public WavReader(byte[] binInfo, String fileName) {
@@ -158,6 +155,8 @@ public class WavReader {
 		int storedBytesPerSample = (int) Math.ceil(bitsPerSample / 8.0);
 		if (format == 1) return getPCMData(storedBytesPerSample, validBitsPerSample, bitsPerSample, nbChannels, rawData);
 		if (format == 3) return getPCMFloatData(storedBytesPerSample, validBitsPerSample, bitsPerSample, nbChannels, rawData);
+		if (format == 6) return getDecodedLaw(nbChannels, rawData, ALAW);
+		if (format == 7) return getDecodedLaw(nbChannels, rawData, MULAW);
 			
 		
 		return null;
@@ -201,6 +200,7 @@ public class WavReader {
 	 * @return The data separated into channels
 	 */
 	public double[][] getPCMFloatData(int storedBytesPerSample, int validBitsPerSample, int bitsPerSample, int nbChannels, byte[] rawData) {
+		if (storedBytesPerSample != 4) return new double[1][0];
 		int bytesPerChannels = rawData.length/nbChannels;//Number of bytes for a given channel
 		int samplesPerChannel = bytesPerChannels / storedBytesPerSample;//Total amount of samples / number of channels
 		int sampleByteOffset = nbChannels*storedBytesPerSample;//Offset of bytes between different samples
@@ -217,33 +217,46 @@ public class WavReader {
 		return channelSeparatedData;
 	}
 	/**
+	 * Uses the raw data to create the waveform with A-Law encoding
+	 * @param nbChannels The number of channels
+	 * @param rawData The raw data of the wav file
+	 * @return The data separated into channels
+	 */
+	public double[][] getDecodedLaw(int nbChannels, byte[] rawData, int law) {
+		int bytesPerChannels = rawData.length/nbChannels;//Number of bytes for a given channel
+		int samplesPerChannel = bytesPerChannels;//1 byte per sample
+		int sampleByteOffset = nbChannels;//Offset of bytes between different samples
+		int initialOffsetPerChannel; //Each channel has an offset
+		
+		double[][] channelSeparatedData = new double[nbChannels][samplesPerChannel];
+		//Separates the data from the different channels
+		for (int channel = 0; channel < nbChannels; channel++) {
+			initialOffsetPerChannel = channel;
+			for (int sample = 0; sample < samplesPerChannel; sample++) {
+				byte byteInfo = rawData[sample * sampleByteOffset + initialOffsetPerChannel];
+				int data;
+				if (law == ALAW) data = ByteManipulationTools.decodeALaw(byteInfo);
+				else data = ByteManipulationTools.decodeULaw(byteInfo);
+				channelSeparatedData[channel][sample] = data * 1.0 / Math.pow(2, 15);
+			}
+		}
+		return channelSeparatedData;
+	}
+	/**
 	 * Finds the time it takes to play the file
-	 * @return The playtime
+	 * @return Returns the play time
 	 */
 	public double findTime() {
-//		Chunk_data data;
-//		Chunk_fact fact;
-//		Chunk_fmt fmt;
-
 		double nbBlocks;//Number of times a value is sampled into different channels
 		int sampleRate;
 		double time = 0;
 		try {
-//			data = (Chunk_data) subChunks.get("subchunksAndInfo.Chunk_data");
-//			fact = (Chunk_fact) subChunks.get("subchunksAndInfo.Chunk_fact");;
-//			fmt = (Chunk_fmt) subChunks.get("subchunksAndInfo.Chunk_fmt");
-//			sampleRate = fmt.getSampleRate();
 			sampleRate = infoReservoir.getFormatInfo().getSampleRate();
-//			if (fact != null) {
-//				nbBlocks = fact.getNbSampleFrames();
-//			}
 			if (infoReservoir.getFactInfo() != null) {
 				nbBlocks = infoReservoir.getFactInfo().getNbSampleFrames();
 			}
 			else {
-//				int totalBytes = data.getSubChunkSize();
 				double totalBytes = infoReservoir.getWeight();
-//				int bytesPerBlock = fmt.getBlockAlign();
 				int bytesPerBlock = infoReservoir.getFormatInfo().getBlockAlign();
 				nbBlocks = totalBytes / bytesPerBlock;
 			}

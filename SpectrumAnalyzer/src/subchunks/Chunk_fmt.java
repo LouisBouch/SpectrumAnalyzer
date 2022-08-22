@@ -29,36 +29,28 @@ public class Chunk_fmt extends SubChunks {
 		}
 		
 		int format = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 0, 2, ByteManipulationTools.LITTLEENDIAN);
-//		dataFormat = format;
-//		info += "AudioFormat: " + format + " -> " + formatFinder(format);
 		formatInfo.setFormat(format);
 		formatInfo.setStringFormat(formatFinder(format));
 		
 		//Gets the number of channels
 		int channels = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 2, 2, ByteManipulationTools.LITTLEENDIAN);
-//		info += "<br/>Number of channels: " + channels;
 		formatInfo.setNbChannels(channels);
 
 		//Block align (Bytes for all samples)
 		int blockAlign = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 12, 2, ByteManipulationTools.LITTLEENDIAN);
-//		info += "<br/>Bytes per block: " + blockAlign + " bytes";
 		formatInfo.setBlockAlign(blockAlign);
 
 		//Bits per sample
 		int bitsPerSample = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 14, 2, ByteManipulationTools.LITTLEENDIAN);
-//		validBitsPerSample = bitsPerSample;
-//		info += "<br/>Bits per sample: " + bitsPerSample + " bits";
 		formatInfo.setBitsPerSample(bitsPerSample);
 		formatInfo.setValidBitsPerSample(bitsPerSample);
 		
 		//Gets the sample rate
 		int sampleRate = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 4, 4, ByteManipulationTools.LITTLEENDIAN);
-//		info += "<br/>Sample rate: " + (sampleRate / 10)/100.0 + " kHz";
 		formatInfo.setSampleRate(sampleRate);
 		
 		//Gets the bit rate
 		int bitRate = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 8, 4, ByteManipulationTools.LITTLEENDIAN) * 8;
-//		info += "<br/>Bit rate: " + (bitRate / 10)/100.0 + " kb/s";
 		formatInfo.setBitRate(bitRate);
 		
 		//Extra information for none integer PCM formats
@@ -76,8 +68,6 @@ public class Chunk_fmt extends SubChunks {
 				channelsLocationLongName[0] = "Left and right";
 				formatInfo.setChannelsLocation(channelsLocation);
 				formatInfo.setChannelsLocationLongName(channelsLocationLongName);
-//				channelsLocationLongName = "Left and right.";
-//				channelsLocation = "LR";
 			}
 			if (channels == 2) {
 				channelsLocation = new String[2];
@@ -88,8 +78,6 @@ public class Chunk_fmt extends SubChunks {
 				channelsLocationLongName[1] = "Right";
 				formatInfo.setChannelsLocation(channelsLocation);
 				formatInfo.setChannelsLocationLongName(channelsLocationLongName);
-//				channelsLocationLongName = "Left.Right.";
-//				channelsLocation = "FL FR";
 			}
 		}
 //		this.setInfo(info);
@@ -124,7 +112,7 @@ public class Chunk_fmt extends SubChunks {
 			
 			//Channels layout
 			String channelsByteValue = "" + (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 20, 4, ByteManipulationTools.LITTLEENDIAN);
-			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue));
+			byte[] bits = ByteManipulationTools.decimalToBits(Integer.parseInt(channelsByteValue), ByteManipulationTools.UNSIGNED);
 			//Assigns channels to speakers
 			int assignedChannels = 0;
 			//Creates string array with N/A inside
@@ -139,11 +127,6 @@ public class Chunk_fmt extends SubChunks {
 			for (int channel = 0; channel < bits.length; channel++) {
 				if (assignedChannels < formatInfo.getNbChannels()) {
 					if (bits[bits.length - 1 - channel] != 0) {
-						/*channelsLocation += "Channel " + (i+1) + " = " + speakersInfo[i] + "; ";*/
-//						channelsLocation += speakersInfo[channel] + " ";
-//						channelsLocationLongName += speakersInfoLongName[channel] + ".";
-//						formatInfo.setChannelsLocation(formatInfo.getChannelsLocation() + speakersInfo[channel] + " ");
-//						formatInfo.setChannelsLocationLongName(formatInfo.getChannelsLocationLongName() + speakersInfoLongName[channel] + ".");
 						channelsLocation[assignedChannels] = speakersInfo[channel];
 						channelsLocationLongName[assignedChannels] = speakersInfoLongName[channel];
 						assignedChannels++;
@@ -155,18 +138,13 @@ public class Chunk_fmt extends SubChunks {
 				formatInfo.setChannelsLocation(channelsLocation);
 				formatInfo.setChannelsLocationLongName(channelsLocationLongName);
 			}
-//			if (assignedChannels != 0) {
-//				info += "<br/>Channels layout: " + channelsLocation.substring(0, channelsLocation.length() - 1);
-//			}
 			
 			//GUID
 			int dataFormat = (int) ByteManipulationTools.getDecimalValueUnsigned(temp, 24, 2, ByteManipulationTools.LITTLEENDIAN);
-//			info += "<br/>Sub format GUID: " + dataFormat + "  -> " + formatFinder(dataFormat);
 			formatInfo.setFormat(dataFormat);
 			formatInfo.setStringFormat(formatFinder(dataFormat));
 		}
 		else return;
-//		formatInfo[0] = "<br/><i>Format specific information:</i>" + extraInfo;
 	}
 	/**
 	 * Returns the format corresponding to the integer
@@ -189,37 +167,5 @@ public class Chunk_fmt extends SubChunks {
 		formats.put(80, "MPEG");
 		formats.put(65534, "WAVE_FORMAT_EXTENSIBLE");
 	}
-//	//Getters for the different properties of the fmt subchunk
-//	public int getFormat() {
-//		return format;
-//	}
-//	public int getDataFormat() {
-//		return dataFormat;
-//	}
-//	public int getBitsPerSample() {
-//		return bitsPerSample;
-//	}
-//	public int getSampleRate() {
-//		return sampleRate;
-//	}
-//	public int getBitRate() {
-//		return bitRate;
-//	}
-//	public int getChannels() {
-//		return channels;
-//	}
-//	public int getBlockAlign() {
-//		return blockAlign;
-//	}
-//	public int getValidBitsPerSample() {
-//		return validBitsPerSample;
-//	}
-//	public String getChannelsLocation() {
-//		return channelsLocation;
-//	}
-//	public String getChannelsLocationLongName() {
-//		return channelsLocationLongName;
-//	}
-
 }
 //https://ccrma.stanford.edu/courses/422-winter-2014/projects/WaveFormat/#:~:text=A%20WAVE%20file%20is%20often,form%20the%20%22Canonical%20form%22.

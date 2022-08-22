@@ -44,7 +44,7 @@ public class Id3Info implements Info {
 
 	@Override
 	public String toString() {
-		String idsString = "<B>Additional information about the audio file:</B><br/>";
+		String idsString = "<B>Additional information about the audio file:</B>";
 		idsString += StringTools.arrayListToString(ids);
 		return idsString;
 	}//End toString

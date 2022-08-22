@@ -177,7 +177,7 @@ public class Plot extends JPanel {
 	public void loadWave() {
 		if (infoReservoir != null) {
 			values = infoReservoir.getDataInfo().getChannelSeparatedData();
-			if (values != null) {
+			if (values != null && values.length > 0) {
 //				samplesPerUnit = ((Chunk_fmt) wavInfo.getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getSampleRate();
 				samplesPerUnit = infoReservoir.getFormatInfo().getSampleRate();
 				nbPossiblePlots = values.length;
@@ -228,55 +228,57 @@ public class Plot extends JPanel {
 
 				int sampleNb;
 				int sampleLength;
+				if (nbSamples > 1) {
+					if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
+						xIni = xOffset < 0 ? 0 : xOffset;
+						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
+						do {
+							xFin = xIni + 1;
 
-				if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
-					xIni = xOffset < 0 ? 0 : xOffset;
-					yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
-					do {
-						xFin = xIni + 1;
-						
-						sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
-						sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
-						
-						//First way to draw
-						yIni = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[0] * yPixelsPerUnit);
-						yFin = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[1] * yPixelsPerUnit);
+							sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
+							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
 
-
-						g2d.drawLine(xIni, yOffset, xFin, yFin);
-						g2d.drawLine(xIni, yOffset, xFin, yIni);
-						
-						//Second way to draw
-//						yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength) * yPixelsPerUnit);
-//						g2d.drawLine(xIni, yIni, xFin, yFin);
+							//First way to draw
+							yIni = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[0] * yPixelsPerUnit);
+							yFin = yOffset - (int) Math.round(minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength)[1] * yPixelsPerUnit);
 
 
-						xIni = xFin;
-						yIni = yFin;
-					} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixels) < nbSamples);
-				}
-				else {//Increment by more than one pixel each time. Increments the values by one each time
-					int iterationNb = 1;
+							g2d.drawLine(xIni, yOffset, xFin, yFin);
+							g2d.drawLine(xIni, yOffset, xFin, yIni);
 
-					sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
-					yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * yPixelsPerUnit);
+							//Second way to draw
+//							yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength) * yPixelsPerUnit);
+//							g2d.drawLine(xIni, yIni, xFin, yFin);
 
-					double xInitialeValue = (sampleNb / samplesPerPixels) + xOffset;//Decides the initial x position based on the sample used
-					xIni = (int) xInitialeValue;
 
-					do {
-						xFin = (int) Math.round(xInitialeValue + iterationNb * pixelIncrement);
-						yFin = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb + 1] * yPixelsPerUnit);
+							xIni = xFin;
+							yIni = yFin;
+						} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixels) < nbSamples);
+					}
+					else {//Increment by more than one pixel each time. Increments the values by one each time
+						int iterationNb = 1;
 
-						g2d.drawLine(xIni, yIni, xFin, yFin);
-						
-						xIni = xFin;
-						yIni = yFin;
+						sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
+						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * yPixelsPerUnit);
 
-						iterationNb++;
-						sampleNb++;
-					} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
-				}
+						double xInitialeValue = (sampleNb / samplesPerPixels) + xOffset;//Decides the initial x position based on the sample used
+						xIni = (int) xInitialeValue;
+
+						do {
+							xFin = (int) Math.round(xInitialeValue + iterationNb * pixelIncrement);
+							yFin = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb + 1] * yPixelsPerUnit);
+
+							g2d.drawLine(xIni, yIni, xFin, yFin);
+
+							xIni = xFin;
+							yIni = yFin;
+
+							iterationNb++;
+							sampleNb++;
+						} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
+					}//End if
+				}//End if
+				else g2d.drawLine(xOffset, yOffset, xOffset, yOffset - (int) Math.round(values[channelsToPlot[channel]][0] * yPixelsPerUnit));
 			}
 		}
 		
