@@ -178,7 +178,6 @@ public class Plot extends JPanel {
 		if (infoReservoir != null) {
 			values = infoReservoir.getDataInfo().getChannelSeparatedData();
 			if (values != null && values.length > 0) {
-//				samplesPerUnit = ((Chunk_fmt) wavInfo.getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getSampleRate();
 				samplesPerUnit = infoReservoir.getFormatInfo().getSampleRate();
 				nbPossiblePlots = values.length;
 				nbSamples = values[channelsToPlot[0]].length;
@@ -217,7 +216,6 @@ public class Plot extends JPanel {
 		//Only draws if some part of the waveform is visible
 		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
 			for (int channel = 0; channel < channelsToPlot.length; channel++) {//Plots every selected channels
-//				g2d.setColor(colors[channel]);//First channel gets first color
 				g2d.setColor(colors[channelsToPlot[channel] % colors.length]);//Channels keep their color
 				double pixelIncrement = samplesPerPixels >= 1 ? 1 : 1/samplesPerPixels;//Increments the x axis by this amount for each iteration of the next loop
 
@@ -231,7 +229,8 @@ public class Plot extends JPanel {
 				if (nbSamples > 1) {
 					if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
 						xIni = xOffset < 0 ? 0 : xOffset;
-						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
+//						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
+						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleOffset] * yPixelsPerUnit);
 						do {
 							xFin = xIni + 1;
 
@@ -259,7 +258,8 @@ public class Plot extends JPanel {
 					else {//Increment by more than one pixel each time. Increments the values by one each time
 						int iterationNb = 1;
 
-						sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
+//						sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
+						sampleNb = (int) ((xOffset < 0 ? -xOffset : 0) * samplesPerPixels);
 						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * yPixelsPerUnit);
 
 						double xInitialeValue = (sampleNb / samplesPerPixels) + xOffset;//Decides the initial x position based on the sample used
@@ -279,7 +279,7 @@ public class Plot extends JPanel {
 						} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
 					}//End if
 				}//End if
-				else g2d.drawLine(xOffset, yOffset, xOffset, yOffset - (int) Math.round(values[channelsToPlot[channel]][0] * yPixelsPerUnit));
+				else g2d.drawLine(xOffset, yOffset, xOffset, yOffset - (int) Math.round(values[channelsToPlot[channel]][0] * yPixelsPerUnit));//Draws only the first sample
 			}
 		}
 		
@@ -351,30 +351,28 @@ public class Plot extends JPanel {
 		int i;//Index value
 		//Draws the unit increments on the x axis--------------------------------------------------------------------------------------
 		double pixelsPerXStep = xPixelsPerUnit * xScale;//Amount of pixel in-between white lines
-		pixMCTB = -(xOffset - ((xOffset % pixelsPerXStep) + pixelsPerXStep) % pixelsPerXStep);
+		pixMCTB = ((xOffset % pixelsPerXStep) + pixelsPerXStep) % pixelsPerXStep;//Pixel multiple closest to border
 		i = 0;
 		do {
-//			xPos = xOffset + (int) pixMCTB + (int) (pixelsPerXStep*i);
-			xPos = xOffset + (int) Math.round(pixMCTB + pixelsPerXStep*i);
+			xPos = (int) Math.round(pixMCTB + pixelsPerXStep*i);
 			yPos = yOffset;
-			printXCenteredString((Math.round((pixMCTB + pixelsPerXStep*i)/xPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
+			printXCenteredString((Math.round((-xOffset + pixMCTB + pixelsPerXStep*i)/xPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
 			g2dSoftLines.drawLine(xPos, 0, xPos, getHeight());
 			i++;
 		}	while(pixelsPerXStep*i < getWidth());
 
 		//Draws the unit increments on the y axis--------------------------------------------------------------------------------------
 		double pixelsPerYStep = yPixelsPerUnit * yScale;//Amount of pixel in-between white lines
-		pixMCTB = -(yOffset - ((yOffset % pixelsPerYStep) + pixelsPerYStep) % pixelsPerYStep);
+		pixMCTB = ((yOffset % pixelsPerYStep) + pixelsPerYStep) % pixelsPerYStep;
 		i = 0;
 		do {
-			if (-pixMCTB - pixelsPerYStep*i < EPSILON && -pixMCTB - pixelsPerYStep*i > -EPSILON) {
+			if (yOffset -pixMCTB - pixelsPerYStep*i < EPSILON && yOffset -pixMCTB - pixelsPerYStep*i > -EPSILON) {//Doesn't redraw the main axis and the other 0
 				i++;
 				continue;
 			}
 			xPos = xOffset;
-//			yPos = yOffset + (int) pixMCTB + (int) (pixelsPerYStep*i);
-			yPos = yOffset + (int) Math.round(pixMCTB + pixelsPerYStep*i);
-			printYCenteredString((Math.round((-pixMCTB - pixelsPerYStep*i)/yPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
+			yPos = yOffset + (int) Math.round(-yOffset + pixMCTB + pixelsPerYStep*i);
+			printYCenteredString((Math.round((yOffset -pixMCTB - pixelsPerYStep*i)/yPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
 			g2dSoftLines.drawLine(0, yPos, getWidth(), yPos);
 			i++;
 		}	while(pixelsPerYStep*i < getHeight());

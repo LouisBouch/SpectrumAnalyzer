@@ -92,8 +92,6 @@ public class ByteManipulationTools {
 		long temp;
 		for (int i = 0; i < nbBytes; i++) {
 			temp = data[start + i] < 0 ? data[start + i] + 256 : data[start + i];
-//			if (endianness == BIGENDIAN ) value += temp * Math.pow(256, nbBytes - 1 - i);
-//			else value += temp * Math.pow(256, i);
 			if (endianness == BIGENDIAN ) value += temp << (8 * (nbBytes - 1 - i));
 			else value += temp << (8 * i);
 		}
