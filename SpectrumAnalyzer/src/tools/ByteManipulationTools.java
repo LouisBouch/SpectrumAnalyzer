@@ -23,7 +23,6 @@ public class ByteManipulationTools {
 	public static int unsignedVersionOfByteTwosComplement(int signedByte) {
 		return (256 + signedByte);
 	}
-	
 	/**
 	 * Computes the value of consecutive bytes. Signed using two's complement
 	 * @param start The starting point of the bytes to compute
