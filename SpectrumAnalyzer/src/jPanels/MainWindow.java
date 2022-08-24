@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Frame;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -135,9 +134,20 @@ public class MainWindow extends JPanel {
 		btn_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (audio.play()) {
+				if (!audio.isPlaying()) {
+					audio.play();
 					plots.get(0).setAudio(audio);
 					plots.get(0).start();;
+				}
+			}
+		});
+		//Stops progression
+		btn_stop.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (audio.isPlaying()) {
+					audio.stop();
+					plots.get(0).stop();
 				}
 			}
 		});

@@ -81,7 +81,7 @@ public class AudioSettingsWindow extends JFrame {
 			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				comboBox_playBackDevice.setPreferredSize(originalSize);
-				add(comboBox_playBackDevice);
+				getContentPane().add(comboBox_playBackDevice);
 				sl_contentPane.putConstraint(SpringLayout.NORTH, comboBox_playBackDevice, 5, SpringLayout.SOUTH, lbl_mixers);
 				sl_contentPane.putConstraint(SpringLayout.WEST, comboBox_playBackDevice, 10, SpringLayout.WEST, pane);
 				revalidate();
@@ -90,7 +90,7 @@ public class AudioSettingsWindow extends JFrame {
 			@Override
 			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 				comboBox_playBackDevice.setPreferredSize(new Dimension(lbl_mixers.getPreferredSize().width, comboBox_playBackDevice.getPreferredSize().height));
-				add(comboBox_playBackDevice);
+				getContentPane().add(comboBox_playBackDevice);
 				sl_contentPane.putConstraint(SpringLayout.NORTH, comboBox_playBackDevice, 5, SpringLayout.SOUTH, lbl_mixers);
 				sl_contentPane.putConstraint(SpringLayout.WEST, comboBox_playBackDevice, 10, SpringLayout.WEST, pane);
 				revalidate();
@@ -99,7 +99,7 @@ public class AudioSettingsWindow extends JFrame {
 			@Override
 			public void popupMenuCanceled(PopupMenuEvent e) {
 				comboBox_playBackDevice.setPreferredSize(new Dimension(lbl_mixers.getPreferredSize().width, comboBox_playBackDevice.getPreferredSize().height));
-				add(comboBox_playBackDevice);
+				getContentPane().add(comboBox_playBackDevice);
 				sl_contentPane.putConstraint(SpringLayout.NORTH, comboBox_playBackDevice, 5, SpringLayout.SOUTH, lbl_mixers);
 				sl_contentPane.putConstraint(SpringLayout.WEST, comboBox_playBackDevice, 10, SpringLayout.WEST, pane);
 				revalidate();
@@ -114,7 +114,13 @@ public class AudioSettingsWindow extends JFrame {
 		sl_contentPane.putConstraint(SpringLayout.NORTH, comboBox_playBackDevice, 5, SpringLayout.SOUTH, lbl_mixers);
 		sl_contentPane.putConstraint(SpringLayout.WEST, comboBox_playBackDevice, 10, SpringLayout.WEST, pane);
 		comboBox_playBackDevice.setVisible(true);
-		add(comboBox_playBackDevice);
+		getContentPane().add(comboBox_playBackDevice);
+		
+//		JSlider spinner_playbackSpeed = new JSlider();
+//		sl_contentPane.putConstraint(SpringLayout.NORTH, spinner_playbackSpeed, 5, SpringLayout.NORTH, pane);
+//		sl_contentPane.putConstraint(SpringLayout.EAST, spinner_playbackSpeed, 10, SpringLayout.EAST, pane);
+//		spinner_playbackSpeed.setVisible(true);
+//		add(spinner_playbackSpeed);
 		
 //		infoMixers();
 		

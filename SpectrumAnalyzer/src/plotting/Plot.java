@@ -622,11 +622,20 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	@Override
 	public void run() {
+		double playBackSpeed = audio.getPlayBackSpeed();
 		double ini = System.nanoTime();
-		long offset = audio.getClip().getMicrosecondPosition();
-		if (offset != 0) ini -= offset * 1000;
+		double offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
+		if (offset != 0) ini += offset * 1000;
+		int rep = 0;
 		while(running) {
-			bar.setTimeOffset(1E-9*(System.nanoTime() - ini));
+			rep = (rep+1) % 100;
+			bar.setTimeOffset(1E-9*(System.nanoTime() - ini)*playBackSpeed);
+			if (rep == 1) {
+				offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
+				if (Math.abs(offset) > 0.05) {
+					ini -= offset / playBackSpeed * 1E9;
+				}
+			}
 			repaint();
 			try {
 				Thread.sleep(10);

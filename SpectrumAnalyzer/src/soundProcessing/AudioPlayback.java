@@ -11,6 +11,8 @@ public class AudioPlayback {
 	private WavInfo wavInfo;
 	private Clip clip;
 	private byte[] data;
+	private boolean playing = false;
+	private double playBackSpeed = 1;
 	
 	/**
 	 * Creates empty object
@@ -50,30 +52,35 @@ public class AudioPlayback {
 	
 	/**
 	 * Plays the samples
-	 * @return Returns true if the file starts playing
 	 */
-	public boolean play() {
+	public void play() {
 		if (clip != null && wavInfo != null) {
 			if (!clip.isOpen()) {
 				try {
 					FormatInfo formatInfo = wavInfo.getFormatInfo();
 					boolean signed = formatInfo.getBitsPerSample() <= 8 ? false : true;
-					AudioFormat format = new AudioFormat(formatInfo.getSampleRate(), formatInfo.getBlockAlign() * 8 / formatInfo.getNbChannels(), formatInfo.getNbChannels(), signed, false);
+					AudioFormat format = new AudioFormat((int) (formatInfo.getSampleRate() * playBackSpeed), formatInfo.getBlockAlign() * 8 / formatInfo.getNbChannels(), formatInfo.getNbChannels(), signed, false);
 					
 					clip.open(format, data, 0, wavInfo.getDataInfo().getData().length);
 					clip.start();
-					return true;
+					playing = true;
 				}
 				catch (LineUnavailableException e) {
 					System.out.println(e);
 				}
 			}
-			else {
-				clip.close();
-			}
 		}
-		return false;
 	}//End play
+	
+	/**
+	 * Stops the play back
+	 */
+	public void stop() {
+		if (clip.isOpen()) {
+			clip.close();
+			playing = false;
+		}
+	}
 	
 	public byte[] getData() {
 		return data;
@@ -99,4 +106,12 @@ public class AudioPlayback {
 	public void setClip(Clip clip) {
 		this.clip = clip;
 	}
+	public boolean isPlaying() {
+		return playing;
+	}
+	public double getPlayBackSpeed() {
+		return playBackSpeed;
+	}
+	
+	
 }
