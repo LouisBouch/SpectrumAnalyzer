@@ -20,7 +20,7 @@ public class AudioBar extends JPanel{
 	}
 	/**
 	 * Paints the bar
-	 * @param g2g
+	 * @param g2d The graphics element
 	 */
 	public void paint(Graphics2D g2d) {
 		Color col = g2d.getColor();
