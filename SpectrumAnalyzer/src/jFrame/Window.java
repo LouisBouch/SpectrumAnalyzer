@@ -19,6 +19,7 @@ public class Window extends JFrame {
 	
 	private static final long serialVersionUID = -5931557487717016550L;
 	private JPanel contentPane;
+	static Window frame;
 
 	/**
 	 * Launch the application.
@@ -27,7 +28,7 @@ public class Window extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Window frame = new Window();
+					frame = new Window();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();

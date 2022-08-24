@@ -1,8 +1,10 @@
 package jPanels;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -18,7 +20,10 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import plotting.Plot;
+import soundProcessing.AudioPlayback;
+import soundProcessing.AudioSettingsWindow;
 import tools.ScreenSizeTool;
+import wavParsingAndStoring.WavInfo;
 import wavParsingAndStoring.WavReader;
 
 public class MainWindow extends JPanel {
@@ -34,15 +39,19 @@ public class MainWindow extends JPanel {
 	
 	private ArrayList<Plot> plots = new ArrayList<>();
 
+	private AudioSettingsWindow audioSettings;//The settings window
+	private AudioPlayback audio;//Contains the samples to be played
+
 
 	/**
 	 * Creates the window that contains the wave information
 	 */
-	public MainWindow() {	
+	public MainWindow() {
 		setBounds(0, 0, ScreenSizeTool.WIDTH , ScreenSizeTool.HEIGHT - 63);	
 		setBackground(new Color(80, 85, 110));
 		setLayoutDim();
 		setLayout(new MigLayout("", col, row));
+		setAudio();
 
 		Plot waveFormPlot = new Plot();
 		plots.add(waveFormPlot);
@@ -57,15 +66,20 @@ public class MainWindow extends JPanel {
 
 		JButton btn_getFile = new JButton("Search for wav file");
 		btn_getFile.setFocusable(false);
-		add(btn_getFile, "cell 1 6");
+		add(btn_getFile, "cell 1 6 2 1, grow");
 
 		JButton btn_start = new JButton("Start");
+		btn_start.setPreferredSize(new Dimension(100, 0));
 		btn_start.setFocusable(false);
-		add(btn_start, "cell 1 8, grow");
+		add(btn_start, "cell 1 5");
 
 		JButton btn_stop = new JButton("Stop");
 		btn_stop.setFocusable(false);
-		add(btn_stop, "cell 2 8");
+		add(btn_stop, "cell 2 5");
+		
+		JButton btn_audioSet = new JButton("Audio settings");
+		btn_stop.setFocusable(false);
+		add(btn_audioSet, "cell 1 9, bottom");
 
 		//Listeners
 		addMouseListener(new MouseAdapter() {
@@ -107,10 +121,12 @@ public class MainWindow extends JPanel {
 						wavFileInfo = new WavReader(binary, dialog.getFile());
 						wavInfoPanel.setText(wavFileInfo.getInfoReservoir().toString());
 						
-						plots.get(0).setWavInfo(wavFileInfo.getInfoReservoir());
+						WavInfo infoResservoir = wavFileInfo.getInfoReservoir();
+						audio = new AudioPlayback(infoResservoir, audioSettings.getClip(), infoResservoir.getDataInfo().getData());
+						
+						plots.get(0).setWavInfo(infoResservoir);
 						plots.get(0).loadWave();
 						
-						repaint();
 					}
 				}
 			}
@@ -119,17 +135,36 @@ public class MainWindow extends JPanel {
 		btn_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (audio.play()) {
+					plots.get(0).setAudio(audio);
+					plots.get(0).start();;
+				}
 			}
 		});
-		
-
-	}
+		//Opens the settings window
+		btn_audioSet.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (audioSettings != null) {
+					audioSettings.activate();
+				}
+			}
+		});
+	}//End mainWindow
+	
 	/**
 	 * Sets the dimension for the layout
 	 */
 	public void setLayoutDim() {
 		col = "[][][][][][][]";
 		row = "[][][][][][50px::][][][][]"; 	
+	}
+	/**
+	 * Creates the settings window
+	 */
+	public void setAudio() {
+		audio = new AudioPlayback();
+		audioSettings = new AudioSettingsWindow(audio);
 	}
 }
 /*

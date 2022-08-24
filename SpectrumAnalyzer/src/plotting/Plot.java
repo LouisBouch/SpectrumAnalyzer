@@ -20,14 +20,21 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
+import soundProcessing.AudioPlayback;
 import tools.ScreenSizeTool;
 import wavParsingAndStoring.WavInfo;
 
-public class Plot extends JPanel {
+public class Plot extends JPanel implements Runnable {
 
 	private static final long serialVersionUID = -8205056792145014780L;
 	
-	JPanel panel = this;
+	private JPanel panel = this;
+	
+	private AudioPlayback audio;
+	
+	private AudioBar bar = new AudioBar(this);
+	
+	private boolean running = false;//True if audio is playing
 
 	private WavInfo infoReservoir;//Contains the information about the wav file
 	
@@ -53,6 +60,8 @@ public class Plot extends JPanel {
 	private int startingPixelsPerUnit = 100;//The starting amount of pixels per unit
 	private double xPixelsPerUnit = startingPixelsPerUnit;//The scale of the plot in the x direction. 1:1 -> 1 pixel per unit
 	private double yPixelsPerUnit = startingPixelsPerUnit;//The scale of the plot in the y direction. 1:1 -> 1 pixel per unit
+	
+	private double samplesPerPixel;//Amount of samples per pixel
 
 	private int mousePosX;
 	private int mousePosY;
@@ -198,6 +207,7 @@ public class Plot extends JPanel {
 
 		paintAxes(g2d);
 		if (values != null) paintWaveForm(g2d);
+		if (bar != null) bar.paint(g2d);
 	}//End paintComponent
 	
 	/**
@@ -205,19 +215,19 @@ public class Plot extends JPanel {
 	 * @param g2d The graphics item
 	 */
 	public void paintWaveForm(Graphics2D g2d) {
-		double samplesPerPixels = samplesPerUnit / xPixelsPerUnit;
+		samplesPerPixel = samplesPerUnit / xPixelsPerUnit;
 		
 		int sampleOffset = 0;//The amount of samples that are off screen due the the xOffset
 		int remainingSamples = nbSamples;
 		if (xOffset < 0) {
-			sampleOffset = (int) Math.round(samplesPerPixels * -xOffset);
+			sampleOffset = (int) Math.round(samplesPerPixel * -xOffset);
 			remainingSamples = nbSamples - sampleOffset;
 		}
 		//Only draws if some part of the waveform is visible
 		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
 			for (int channel = 0; channel < channelsToPlot.length; channel++) {//Plots every selected channels
 				g2d.setColor(colors[channelsToPlot[channel] % colors.length]);//Channels keep their color
-				double pixelIncrement = samplesPerPixels >= 1 ? 1 : 1/samplesPerPixels;//Increments the x axis by this amount for each iteration of the next loop
+				double pixelIncrement = samplesPerPixel >= 1 ? 1 : 1/samplesPerPixel;//Increments the x axis by this amount for each iteration of the next loop
 
 				int xIni;
 				int yIni;
@@ -234,8 +244,8 @@ public class Plot extends JPanel {
 						do {
 							xFin = xIni + 1;
 
-							sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixels);
-							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixels) - sampleNb;
+							sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixel);
+							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixel) - sampleNb;
 
 							//First way to draw
 							double[] minMax = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength);
@@ -253,16 +263,16 @@ public class Plot extends JPanel {
 
 							xIni = xFin;
 							yIni = yFin;
-						} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixels) < nbSamples);
+						} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixel) < nbSamples);
 					}
 					else {//Increment by more than one pixel each time. Increments the values by one each time
 						int iterationNb = 1;
 
 //						sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
-						sampleNb = (int) ((xOffset < 0 ? -xOffset : 0) * samplesPerPixels);
+						sampleNb = (int) ((xOffset < 0 ? -xOffset : 0) * samplesPerPixel);
 						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * yPixelsPerUnit);
 
-						double xInitialeValue = (sampleNb / samplesPerPixels) + xOffset;//Decides the initial x position based on the sample used
+						double xInitialeValue = (sampleNb / samplesPerPixel) + xOffset;//Decides the initial x position based on the sample used
 						xIni = (int) xInitialeValue;
 
 						do {
@@ -608,6 +618,41 @@ public class Plot extends JPanel {
 		repaint();
 	}
 	/**
+	 * Runs the audio bar
+	 */
+	@Override
+	public void run() {
+		double ini = System.nanoTime();
+		long offset = audio.getClip().getMicrosecondPosition();
+		if (offset != 0) ini -= offset * 1000;
+		while(running) {
+			bar.setTimeOffset(1E-9*(System.nanoTime() - ini));
+			repaint();
+			try {
+				Thread.sleep(10);
+			}
+			catch(InterruptedException e) {
+				System.out.println(e);
+			}
+		}
+	}
+	/**
+	 * Starts the repaints
+	 */
+	public void start() {
+		if (!running) {
+			running = true;
+			final Thread thread = new Thread(this);
+			thread.start();
+		}
+	}
+	/**
+	 * Stops the repaints
+	 */
+	public void stop() {
+		if (running) running = false;
+	}
+	/**
 	 * Sets the channel to plot
 	 * @param channelToPlot The channel index
 	 */
@@ -645,8 +690,18 @@ public class Plot extends JPanel {
 	public Color[] getColors() {
 		return colors;
 	}
-	
-	
+	public int getxOffset() {
+		return xOffset;
+	}
+	public void setAudio(AudioPlayback audio) {
+		this.audio = audio;
+	}
+	public double getSamplesPerPixel() {
+		return samplesPerPixel;
+	}
+	public double getxPixelsPerUnit() {
+		return xPixelsPerUnit;
+	}
 	
 }
 
