@@ -41,6 +41,8 @@ public class MainWindow extends JPanel {
 	private AudioSettingsWindow audioSettings;//The settings window
 	private AudioPlayback audio;//Contains the samples to be played
 
+	private boolean fileOpened = false;
+
 
 	/**
 	 * Creates the window that contains the wave information
@@ -67,10 +69,10 @@ public class MainWindow extends JPanel {
 		btn_getFile.setFocusable(false);
 		add(btn_getFile, "cell 1 6 2 1, grow");
 
-		JButton btn_start = new JButton("Start");
-		btn_start.setPreferredSize(new Dimension(100, 0));
-		btn_start.setFocusable(false);
-		add(btn_start, "cell 1 5");
+		JButton btn_startPause = new JButton("Start/Pause");
+		btn_startPause.setPreferredSize(new Dimension(100, 0));
+		btn_startPause.setFocusable(false);
+		add(btn_startPause, "cell 1 5");
 
 		JButton btn_stop = new JButton("Stop");
 		btn_stop.setFocusable(false);
@@ -121,34 +123,29 @@ public class MainWindow extends JPanel {
 						wavInfoPanel.setText(wavFileInfo.getInfoReservoir().toString());
 						
 						WavInfo infoResservoir = wavFileInfo.getInfoReservoir();
-						audio = new AudioPlayback(infoResservoir, audioSettings.getClip(), infoResservoir.getDataInfo().getData());
+						stop();
+						audio.reInitialize(infoResservoir, audioSettings.getClip(), infoResservoir.getDataInfo().getData());
 						
 						plots.get(0).setWavInfo(infoResservoir);
 						plots.get(0).loadWave();
 						
+						fileOpened = true;
 					}
 				}
 			}
 		});
 		//Starts the media player
-		btn_start.addActionListener(new ActionListener() {
+		btn_startPause.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!audio.isPlaying()) {
-					audio.play();
-					plots.get(0).setAudio(audio);
-					plots.get(0).start();;
-				}
+				startPause();
 			}
 		});
 		//Stops progression
 		btn_stop.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (audio.isPlaying()) {
-					audio.stop();
-					plots.get(0).stop();
-				}
+				stop();
 			}
 		});
 		//Opens the settings window
@@ -162,6 +159,33 @@ public class MainWindow extends JPanel {
 		});
 	}//End mainWindow
 	
+	/**
+	 * Start, pauses and resumes audio
+	 */
+	public void startPause() {
+		Plot plot = plots.get(0);
+		if (fileOpened) {
+			if (!audio.isPlaying()) {
+				if (audio.getClip().getMicrosecondPosition() == 0) plot.setPlayBackSpeed(audio.getPlayBackSpeed());
+				audio.play();
+				plot.setAudio(audio);
+				plot.start();
+			}
+			else {
+				audio.pause();
+				plot.pause();
+			}
+		}
+	}
+	/**
+	 * Stops audio
+	 */
+	public void stop() {
+		if (audio.getClip().isOpen()) {
+			audio.stop();
+		}
+		plots.get(0).stop();
+	}
 	/**
 	 * Sets the dimension for the layout
 	 */

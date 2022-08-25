@@ -31,8 +31,10 @@ public class Plot extends JPanel implements Runnable {
 	private JPanel panel = this;
 	
 	private AudioPlayback audio;
-	
 	private AudioBar bar = new AudioBar(this);
+	private double playBackSpeed = 1;//Speed at which the audio is played
+	private boolean stopped = true;//True if data was stopped, not paused
+	
 	
 	private boolean running = false;//True if audio is playing
 
@@ -83,6 +85,10 @@ public class Plot extends JPanel implements Runnable {
 
 	private JLabel lbl_pixPerUX;
 	private JLabel lbl_pixPerUY;
+	
+	private double[][][] minMaxArray;//Stores the max and min values of the current array
+	
+	private boolean arrayFillingNecessary = true;//Check if there is a need to refill the array
 
 
 	/**
@@ -193,6 +199,7 @@ public class Plot extends JPanel implements Runnable {
 				
 				if (waveFormSet != null) waveFormSet.close();
 				waveFormSet = new SettingWindow(infoReservoir, this);
+				arrayFillingNecessary = true;
 				
 				repaint();
 			}
@@ -225,6 +232,7 @@ public class Plot extends JPanel implements Runnable {
 		}
 		//Only draws if some part of the waveform is visible
 		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
+			if (arrayFillingNecessary) minMaxArray = new double[channelsToPlot.length][(int) Math.ceil(nbSamples / samplesPerPixel)][2];
 			for (int channel = 0; channel < channelsToPlot.length; channel++) {//Plots every selected channels
 				g2d.setColor(colors[channelsToPlot[channel] % colors.length]);//Channels keep their color
 				double pixelIncrement = samplesPerPixel >= 1 ? 1 : 1/samplesPerPixel;//Increments the x axis by this amount for each iteration of the next loop
@@ -235,22 +243,26 @@ public class Plot extends JPanel implements Runnable {
 				int yFin;
 
 				int sampleNb;
-				int sampleLength;
+//				int sampleLength;
 				if (nbSamples > 1) {
 					if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
 						xIni = xOffset < 0 ? 0 : xOffset;
 //						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
 						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleOffset] * yPixelsPerUnit);
+						//Fills the value array
+						if (arrayFillingNecessary) fillArray(minMaxArray[channel], values[channelsToPlot[channel]]);
+						
+						int index = 0;
+						int indexOffset = xOffset < 0 ? -xOffset : 0;
 						do {
 							xFin = xIni + 1;
 
 							sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixel);
-							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixel) - sampleNb;
+//							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixel) - sampleNb;
 
 							//First way to draw
-							double[] minMax = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength);
-							yIni = yOffset - (int) Math.round(minMax[0] * yPixelsPerUnit);
-							yFin = yOffset - (int) Math.round(minMax[1] * yPixelsPerUnit);
+							yIni = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][0] * yPixelsPerUnit);
+							yFin = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][1] * yPixelsPerUnit);
 
 
 							g2d.drawLine(xIni, yOffset, xFin, yFin);
@@ -263,6 +275,7 @@ public class Plot extends JPanel implements Runnable {
 
 							xIni = xFin;
 							yIni = yFin;
+							index++;
 						} while(xFin + 1 < getWidth() && sampleNb + (int) 2*Math.round(samplesPerPixel) < nbSamples);
 					}
 					else {//Increment by more than one pixel each time. Increments the values by one each time
@@ -290,10 +303,19 @@ public class Plot extends JPanel implements Runnable {
 					}//End if
 				}//End if
 				else g2d.drawLine(xOffset, yOffset, xOffset, yOffset - (int) Math.round(values[channelsToPlot[channel]][0] * yPixelsPerUnit));//Draws only the first sample
-			}
+			}//End plotting
+			arrayFillingNecessary = false;
 		}
 		
 	}//End paintWaveForm
+	/**
+	 * Fills the value array
+	 */
+	public void fillArray(double[][] arrayToFill, double[] values) {
+		for (int sample = 0; sample < arrayToFill.length; sample++) {
+			arrayToFill[sample] = minMaxOfSampleChunk(values, (int) Math.round(sample * samplesPerPixel), (int) Math.round(samplesPerPixel));
+		}
+	}
 	
 	/**
 	 * Gets the average of a chunk of samples
@@ -447,6 +469,7 @@ public class Plot extends JPanel implements Runnable {
 	 * Zooms only the x axis
 	 */
 	public void zoomX(MouseWheelEvent e) {
+		arrayFillingNecessary = true;
 		int zoomDirection = e.getWheelRotation();//(- -> in ; + -> out)
 		xZoomAmount += zoomDirection;
 		adjustThresholdsTight("x");
@@ -622,11 +645,18 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	@Override
 	public void run() {
-		double playBackSpeed = audio.getPlayBackSpeed();
 		double ini = System.nanoTime();
+		
+		//Makes sure everything starts at the same time
+		while (audio.getClip().getMicrosecondPosition() == 0) {
+			ini = System.nanoTime();
+			sleep(5);
+		}
 		double offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
-		if (offset != 0) ini += offset * 1000;
+		if (offset != 0) ini -= offset / playBackSpeed * 1E9;
 		int rep = 0;
+		
+		//Adjusts the bar and repaints
 		while(running) {
 			rep = (rep+1) % 100;
 			bar.setTimeOffset(1E-9*(System.nanoTime() - ini)*playBackSpeed);
@@ -636,13 +666,26 @@ public class Plot extends JPanel implements Runnable {
 					ini -= offset / playBackSpeed * 1E9;
 				}
 			}
+			if((System.nanoTime()-ini)*playBackSpeed >= audio.getClip().getMicrosecondLength() * 1E3 * playBackSpeed) {
+				stop();
+				audio.stop();
+			}
 			repaint();
-			try {
-				Thread.sleep(10);
-			}
-			catch(InterruptedException e) {
-				System.out.println(e);
-			}
+			sleep(10);
+		}
+		if (stopped) bar.setTimeOffset(0);
+		repaint();
+	}
+	/**
+	 * Pauses the threads
+	 * @param sleep Amount of time to sleep in milliseconds
+	 */
+	public void sleep(int sleep) {
+		try {
+			Thread.sleep(sleep);
+		}
+		catch(InterruptedException e) {
+			System.out.println(e);
 		}
 	}
 	/**
@@ -651,15 +694,25 @@ public class Plot extends JPanel implements Runnable {
 	public void start() {
 		if (!running) {
 			running = true;
+			stopped = false;
 			final Thread thread = new Thread(this);
 			thread.start();
 		}
+	}
+	/**
+	 * Pauses the repaints
+	 */
+	public void pause() {
+		if (running) running = false;
 	}
 	/**
 	 * Stops the repaints
 	 */
 	public void stop() {
 		if (running) running = false;
+		bar.setTimeOffset(0);
+		stopped = true;
+		repaint();
 	}
 	/**
 	 * Sets the channel to plot
@@ -667,6 +720,7 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	public void setChannelToPlot(int[] channelToPlot) {
 		this.channelsToPlot = channelToPlot;
+		arrayFillingNecessary = true;
 		repaint();
 	}
 	/**
@@ -710,6 +764,9 @@ public class Plot extends JPanel implements Runnable {
 	}
 	public double getxPixelsPerUnit() {
 		return xPixelsPerUnit;
+	}
+	public void setPlayBackSpeed(double playBackSpeed) {
+		this.playBackSpeed = playBackSpeed;
 	}
 	
 }

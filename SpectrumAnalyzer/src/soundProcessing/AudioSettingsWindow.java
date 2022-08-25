@@ -19,10 +19,14 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import java.awt.Cursor;
 
 public class AudioSettingsWindow extends JFrame {
 	
@@ -68,7 +72,8 @@ public class AudioSettingsWindow extends JFrame {
 		sl_contentPane.putConstraint(SpringLayout.WEST, lbl_mixers, 10, SpringLayout.WEST, pane);
 		pane.add(lbl_mixers);
 		
-		JComboBox<Mixer.Info> comboBox_playBackDevice = new JComboBox<Mixer.Info>(playbackDevices);
+		JComboBox<Mixer.Info> comboBox_playBackDevice = new JComboBox<>(playbackDevices);
+//		JComboBox comboBox_playBackDevice = new JComboBox(playbackDevices);
 		for (Component comp : comboBox_playBackDevice.getComponents()) {
 			if (comp instanceof AbstractButton) comp.setVisible(false);;//Removes drop down button
 		}
@@ -116,11 +121,34 @@ public class AudioSettingsWindow extends JFrame {
 		comboBox_playBackDevice.setVisible(true);
 		getContentPane().add(comboBox_playBackDevice);
 		
-//		JSlider spinner_playbackSpeed = new JSlider();
-//		sl_contentPane.putConstraint(SpringLayout.NORTH, spinner_playbackSpeed, 5, SpringLayout.NORTH, pane);
-//		sl_contentPane.putConstraint(SpringLayout.EAST, spinner_playbackSpeed, 10, SpringLayout.EAST, pane);
-//		spinner_playbackSpeed.setVisible(true);
-//		add(spinner_playbackSpeed);
+		JLabel lbl_pbS = new JLabel("Playback speed %: ");
+		lbl_pbS.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lbl_pbS.setForeground(new Color(200, 200, 200));
+		sl_contentPane.putConstraint(SpringLayout.NORTH, lbl_pbS, 5, SpringLayout.NORTH, pane);
+		sl_contentPane.putConstraint(SpringLayout.EAST, lbl_pbS, -10, SpringLayout.EAST, pane);
+		getContentPane().add(lbl_pbS);
+		
+		JSlider spinner_playbackSpeed = new JSlider();
+		spinner_playbackSpeed.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				double value = ((JSlider)e.getSource()).getValue() / 100.0;
+				audioPlayback.setPlayBackSpeed(value == 0 ? 0.05 : value);
+			}
+		});
+		spinner_playbackSpeed.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		spinner_playbackSpeed.setSnapToTicks(true);
+		spinner_playbackSpeed.setPaintLabels(true);
+		spinner_playbackSpeed.setMajorTickSpacing(50);
+		spinner_playbackSpeed.setMinorTickSpacing(10);
+		spinner_playbackSpeed.setMaximum(300);
+		spinner_playbackSpeed.setMinimum(0);
+		spinner_playbackSpeed.setValue(100);
+		spinner_playbackSpeed.setPaintTicks(true);
+		sl_contentPane.putConstraint(SpringLayout.NORTH, spinner_playbackSpeed, 5, SpringLayout.SOUTH, lbl_pbS);
+		sl_contentPane.putConstraint(SpringLayout.EAST, spinner_playbackSpeed, 0, SpringLayout.EAST, lbl_pbS);
+		sl_contentPane.putConstraint(SpringLayout.WEST, spinner_playbackSpeed, 0, SpringLayout.WEST, lbl_pbS);
+		getContentPane().add(spinner_playbackSpeed);
 		
 //		infoMixers();
 		
@@ -204,4 +232,8 @@ public class AudioSettingsWindow extends JFrame {
 	public Clip getClip() {
 		return clip;
 	}//End getClip
+	public Mixer getMixer() {
+		return mixer;
+	}
+	
 }

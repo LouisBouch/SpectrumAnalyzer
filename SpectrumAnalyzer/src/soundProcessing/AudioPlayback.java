@@ -7,7 +7,7 @@ import javax.sound.sampled.LineUnavailableException;
 import subchunkObjects.FormatInfo;
 import wavParsingAndStoring.WavInfo;
 
-public class AudioPlayback {
+public class AudioPlayback implements Runnable{
 	private WavInfo wavInfo;
 	private Clip clip;
 	private byte[] data;
@@ -62,14 +62,16 @@ public class AudioPlayback {
 					AudioFormat format = new AudioFormat((int) (formatInfo.getSampleRate() * playBackSpeed), formatInfo.getBlockAlign() * 8 / formatInfo.getNbChannels(), formatInfo.getNbChannels(), signed, false);
 					
 					clip.open(format, data, 0, wavInfo.getDataInfo().getData().length);
-					clip.start();
-					playing = true;
 				}
 				catch (LineUnavailableException e) {
 					System.out.println(e);
 				}
-			}
-		}
+			}//End if
+			if (!clip.isRunning()) {
+				clip.start();
+				playing = true;
+			}//End if
+		}//End if
 	}//End play
 	
 	/**
@@ -77,13 +79,35 @@ public class AudioPlayback {
 	 */
 	public void stop() {
 		if (clip.isOpen()) {
-			clip.close();
+			Thread thread = new Thread(this);
+			thread.start();
+		}
+	}
+	/**
+	 * Pauses the play back
+	 */
+	public void pause() {
+		if (clip.isOpen()) {
+			clip.stop();
 			playing = false;
 		}
+	}
+	/**
+	 * New thread closes the clip because it is likely to freeze for 2 seconds
+	 */
+	@Override
+	public void run() {
+		clip.close();
+		playing = false;
 	}
 	
 	public byte[] getData() {
 		return data;
+	}
+	public void reInitialize(WavInfo wavInfo, Clip clip, byte[] data) {
+		this.wavInfo = wavInfo;
+		this.clip = clip;
+		this.data = data;
 	}
 	/**
 	 * Sets the sample values to be played
@@ -112,6 +136,8 @@ public class AudioPlayback {
 	public double getPlayBackSpeed() {
 		return playBackSpeed;
 	}
-	
+	public void setPlayBackSpeed(double playBackSpeed) {
+		this.playBackSpeed = playBackSpeed;
+	}
 	
 }
