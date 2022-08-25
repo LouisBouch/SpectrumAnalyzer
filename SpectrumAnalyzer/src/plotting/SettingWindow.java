@@ -27,6 +27,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import tools.ValueParsingTools;
 import wavParsingAndStoring.WavInfo;
 
 public class SettingWindow extends JFrame {
@@ -129,15 +130,9 @@ public class SettingWindow extends JFrame {
 
 		JLabel label_legend = new JLabel("<html> <B>Legend:</B>");
 		Color color;
-		String red;
-		String green;
-		String blue;
 		for (int channel = 1; channel <= possiblePlots; channel++) {
 			color = parent.getColors()[(channel - 1) % parent.getColors().length];
-			red = Integer.toHexString(color.getRed());
-			green = Integer.toHexString(color.getGreen());
-			blue = Integer.toHexString(color.getBlue());
-			String hexColorFont = "<font color=#" + (red.length() == 1 ? (red = "0" + red) : red) + (green.length() == 1 ? (green = "0" + green) : green) + (blue.length() == 1 ? (blue = "0" + blue) : blue) + ">";
+			String hexColorFont = "<font color=#" + ValueParsingTools.colorToHex(color) + ">";
 			label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + infoReservoir.getFormatInfo().getChannelsLocationLongName()[channel - 1]);
 		}
 		label_legend.setFont(new Font("Tahoma", Font.PLAIN, 15));

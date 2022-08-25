@@ -1,5 +1,7 @@
 package subchunkObjects;
 
+import java.awt.Color;
+
 import interfaces.Info;
 import tools.ValueParsingTools;
 
@@ -136,6 +138,10 @@ public class FormatInfo implements Info {
 		formatString += "Channel mapping: ";
 		for (int channel = 0; channel < channelsLocation.length; channel++) {
 			formatString += channelsLocation[channel] + " ";
+		}
+		if (bitsPerSample > 16 || nbChannels > 2) {
+			String hexColorFont = "<font color=#" + ValueParsingTools.colorToHex(Color.RED.darker()) + ">";
+			formatString += "<br/>" + hexColorFont + "<B>Audio files with > 16 bit depth or > 2 channels<br/>Cannot be playbed back</B>" + "</font>";
 		}
 		return formatString;
 	}//End toString

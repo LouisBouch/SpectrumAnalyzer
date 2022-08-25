@@ -44,7 +44,9 @@ public class Plot extends JPanel implements Runnable {
 	
 	private final double EPSILON = 1e-10;//Uncertainty value 
 	
-	private Color[] colors = {Color.GREEN, Color.YELLOW, Color.RED, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK}; 
+//	private Color[] colors = {Color.GREEN, Color.YELLOW, Color.RED, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.PINK}; 
+	private Color[] colors = {new Color(0x7dff6b), new Color(0xfaff6b), new Color(0xff6b6b), new Color(0x6b85ff), new Color(0xd96bff), new Color(0x6bd5ff), new Color(0xffab6b), new Color(0x8e8e8e)}; 
+	private Color backGroundColor = new Color(5, 5, 5);
 
 	private double[][] values;//The values of the plot for all different channels
 	
@@ -116,7 +118,7 @@ public class Plot extends JPanel implements Runnable {
 	 * Does the necessary to prepare the plot
 	 */
 	public void prepPlot() {
-		setBackground(new Color(0, 0, 0));
+		setBackground(backGroundColor);
 		setPreferredSize(new Dimension(ScreenSizeTool.WIDTH * 3/4, ScreenSizeTool.HEIGHT * 1/2));
 		xOffset = ScreenSizeTool.WIDTH * 3/4 * 1/2;
 		yOffset = ScreenSizeTool.HEIGHT * 1/2 * 1/2;
@@ -193,13 +195,13 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	public void loadWave() {
 		if (infoReservoir != null) {
-			values = infoReservoir.getDataInfo().getChannelSeparatedData();
+			values = infoReservoir.getDataInfo().getChannelSeparatedData();//Sets the values
 			if (values != null && values.length > 0) {
-				samplesPerUnit = infoReservoir.getFormatInfo().getSampleRate();
+				samplesPerUnit = infoReservoir.getFormatInfo().getSampleRate();//Sets the necessary information to plot
 				nbPossiblePlots = values.length;
 				nbSamples = values[channelsToPlot[0]].length;
 				
-				if (waveFormSet != null) waveFormSet.close();
+				if (waveFormSet != null) waveFormSet.close();//Takes care of the old plot
 				waveFormSet = new SettingWindow(infoReservoir, this);
 				arrayFillingNecessary = true;
 				
@@ -207,6 +209,15 @@ public class Plot extends JPanel implements Runnable {
 			}
 		}
 	}//End loadWave
+	/**
+	 * Sets the info of the wav file
+	 * @param wavInfo Object that contains the information about the wav file
+	 */
+	public void setWavInfo(WavInfo infoReservoir) {
+		channelsToPlot = new int[1];
+		channelsToPlot[0] = 0;
+		this.infoReservoir = infoReservoir;
+	}
 
 	@Override
 	public void paintComponent(Graphics g) {
@@ -730,15 +741,6 @@ public class Plot extends JPanel implements Runnable {
 		this.channelsToPlot = channelToPlot;
 		arrayFillingNecessary = true;
 		repaint();
-	}
-	/**
-	 * Sets the info of the wav file
-	 * @param wavInfo Object that contains the information about the wav file
-	 */
-	public void setWavInfo(WavInfo infoReservoir) {
-		channelsToPlot = new int[1];
-		channelsToPlot[0] = 0;
-		this.infoReservoir = infoReservoir;
 	}
 	/**
 	 * Gets the amount of possible plots

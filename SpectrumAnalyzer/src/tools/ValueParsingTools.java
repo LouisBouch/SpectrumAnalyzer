@@ -1,5 +1,7 @@
 package tools;
 
+import java.awt.Color;
+
 public class ValueParsingTools {
 	/**
 	 * Takes in a time and transforms it into a string that gives days, hours, minutes, seconds and milliseconds.
@@ -70,4 +72,16 @@ public class ValueParsingTools {
 		}
 		return NumberManipulationTools.setDecimalPlaces(number/divisor, 3) + " " + suffix;
 	}//End refinedByteSize
+	/**
+	 * Takes a color and return the hex numbers as a string
+	 * @param color The color
+	 * @return The hex string
+	 */
+	public static String colorToHex(Color color) {
+		String red = Integer.toHexString(color.getRed());
+		String green = Integer.toHexString(color.getGreen());
+		String blue = Integer.toHexString(color.getBlue());
+		return (red.length() == 1 ? (red = "0" + red) : red) + (green.length() == 1 ? (green = "0" + green) : green) + (blue.length() == 1 ? (blue = "0" + blue) : blue);
+		
+	}
 }
