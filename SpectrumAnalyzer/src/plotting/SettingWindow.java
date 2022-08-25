@@ -28,14 +28,14 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import tools.ValueParsingTools;
-import wavParsingAndStoring.WavInfo;
 
 public class SettingWindow extends JFrame {
 
 	private static final long serialVersionUID = 5872177811395185412L;
 	private JPanel pane;
 	private Plot parent;
-	private WavInfo infoReservoir;
+//	private WavInfo infoReservoir;
+	private String[] plotsLegend;
 	
 	private int possiblePlots;
 //	private String[] detailedPossiblePlots;
@@ -45,11 +45,12 @@ public class SettingWindow extends JFrame {
 	private int channelFontSize = 15;
 	
 
-	public SettingWindow(WavInfo infoReservoir, Plot parent) {
+	public SettingWindow(String[] plotsLegend, Plot parent) {
 		this.parent = parent;
-		this.infoReservoir = infoReservoir;
+		this.plotsLegend = plotsLegend;
+//		this.infoReservoir = infoReservoir;
 //		this.possiblePlots = parent.getNbPossiblePlots();
-		this.possiblePlots = infoReservoir.getFormatInfo().getNbChannels();
+		this.possiblePlots = parent.getNbPossiblePlots();
 		
 		//Sets detailedPossiblePlots
 //		String singleStringDetailedPossiblePlots = ((Chunk_fmt) parent.getWavInfo().getSubChunks().get("subchunksAndInfo.Chunk_fmt")).getChannelsLocationLongName();
@@ -133,7 +134,7 @@ public class SettingWindow extends JFrame {
 		for (int channel = 1; channel <= possiblePlots; channel++) {
 			color = parent.getColors()[(channel - 1) % parent.getColors().length];
 			String hexColorFont = "<font color=#" + ValueParsingTools.colorToHex(color) + ">";
-			label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + infoReservoir.getFormatInfo().getChannelsLocationLongName()[channel - 1]);
+			label_legend.setText(label_legend.getText() + "<br/>Channel " + hexColorFont + channel + "</font>: " + plotsLegend[channel - 1]);
 		}
 		label_legend.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		label_legend.setForeground(Color.BLACK);

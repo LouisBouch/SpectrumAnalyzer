@@ -126,8 +126,10 @@ public class MainWindow extends JPanel {
 						stop();
 						audio.reInitialize(infoResservoir, audioSettings.getClip(), infoResservoir.getDataInfo().getData());
 						
-						plots.get(0).setWavInfo(infoResservoir);
-						plots.get(0).loadWave();
+//						plots.get(0).setWavInfo(infoResservoir);
+						plots.get(0).loadWave(infoResservoir.getDataInfo().getChannelSeparatedData(), 
+								infoResservoir.getFormatInfo().getSampleRate(), 
+								infoResservoir.getFormatInfo().getChannelsLocationLongName());
 						
 						fileOpened = true;
 					}

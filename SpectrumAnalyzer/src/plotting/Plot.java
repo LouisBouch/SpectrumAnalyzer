@@ -22,12 +22,13 @@ import javax.swing.SpringLayout;
 
 import soundProcessing.AudioPlayback;
 import tools.ScreenSizeTool;
-import wavParsingAndStoring.WavInfo;
+import tools.Vector2D;
 
 public class Plot extends JPanel implements Runnable {
 
 	private static final long serialVersionUID = -8205056792145014780L;
 	
+	private Dimension panelSize;//Sets the panel size
 	private JPanel panel = this;
 	
 	private AudioPlayback audio;
@@ -38,8 +39,6 @@ public class Plot extends JPanel implements Runnable {
 	
 	private boolean running = false;//True if audio is playing
 
-	private WavInfo infoReservoir;//Contains the information about the wav file
-	
 	private SettingWindow waveFormSet;//The settings window
 	
 	private final double EPSILON = 1e-10;//Uncertainty value 
@@ -56,31 +55,20 @@ public class Plot extends JPanel implements Runnable {
 	private int[] channelsToPlot;//The channel to use to make the plot
 
 
-	private int xOffset;//The x offset of the origin
-	private int yOffset; //The y offset of the origin
-
-	private double xScale = 1;//The separation of each unit on the x axis
-	private double yScale = 1;//The separation of each unit on the y axis
 	private int startingPixelsPerUnit = 100;//The starting amount of pixels per unit
-	private double xPixelsPerUnit = startingPixelsPerUnit;//The scale of the plot in the x direction. 1:1 -> 1 pixel per unit
-	private double yPixelsPerUnit = startingPixelsPerUnit;//The scale of the plot in the y direction. 1:1 -> 1 pixel per unit
 	
 	private double samplesPerPixel;//Amount of samples per pixel
 
-	private int mousePosX;
-	private int mousePosY;
-
 	private double zoomPercentage = 0.9;//Zooming out reduces the size of objects by this amount
-	private int xZoomAmount;//Amount of times the window has been zoomed in or out (- -> in ; + -> out) (x axis)
-	private int yZoomAmount;//Amount of times the window has been zoomed in or out (- -> in ; + -> out) (y axis)
-	private int xDivAmountByTwo = 0;//Amount of times the axes were split by 2 (x axis)
-	private int yDivAmountByTwo = 0;//Amount of times the axes were split by 2 (y axis)
-	private int xDivAmountByFiveHalf = 0;//Amount of times the axes were split by 5/2 (x axis)
-	private int yDivAmountByFiveHalf = 0;//Amount of times the axes were split by 5/2 (y axis)
-	private double xZoomInThreshold;//When the screen is more zoomed in than this number, adjusts the scale
-	private double yZoomInThreshold;//When the screen is more zoomed in than this number, adjusts the scale
-	private double xZoomOutThreshold;//When the screen is more zoomed out than this number, adjusts the scale
-	private double yZoomOutThreshold;//When the screen is more zoomed out than this number, adjusts the scale
+	private Vector2D mousePosVec = new Vector2D();//The x/y offset of the origin
+	private Vector2D offsetVec;//The x/y offset of the origin
+	private Vector2D scaleVec = new Vector2D(1, 1);//The separation of each unit on an axis
+	private Vector2D pixelsPerUnitVec = new Vector2D(startingPixelsPerUnit, startingPixelsPerUnit);//The scale of the plot in the x/y direction. 1:1 -> 1 pixel per unit
+	private Vector2D zoomAmountVec = new Vector2D();//Amount of times the window has been zoomed in or out (- -> in ; + -> out)
+	private Vector2D divAmountByTwoVec = new Vector2D();//Amount of times the axes were split by 2
+	private Vector2D divAmountByFiveHalfVec = new Vector2D();//Amount of times the axes were split by 5/2
+	private Vector2D zoomInThresholdVec = new Vector2D();//When the screen is more zoomed in than this number, adjusts the scale
+	private Vector2D zoomOutThresholdVec = new Vector2D();//When the screen is more zoomed in than this number, adjusts the scale
 
 	private double anticipationValue = 0.8;//Number between 0-1 with 0 giving a more compact grid and 1 giving a more spaced grid
 	private double gridSize = 0.5;//Bigger values give bigger grids
@@ -88,7 +76,7 @@ public class Plot extends JPanel implements Runnable {
 	private JLabel lbl_pixPerUX;
 	private JLabel lbl_pixPerUY;
 	
-	private double[][][] minMaxArray;//Stores the max and min values of the current array
+	private double[][][] minMaxArray;//Stores the max and minimum values of the current array
 	
 	private boolean arrayFillingNecessary = true;//Check if there is a need to refill the array
 	
@@ -100,12 +88,9 @@ public class Plot extends JPanel implements Runnable {
 	 * @param values The data from the wav file
 	 * @param samplesPerUnit The amount of samples required to make one unit (x axis)
 	 */
-	public Plot(double[][] values, double samplesPerUnit) {
-		this.values = values;
-		this.samplesPerUnit = samplesPerUnit;
-		nbPossiblePlots = this.values.length;
+	public Plot(double[][] values, double samplesPerUnit, String[] plotsLegend) {
 		prepPlot();
-		loadWave();
+		loadWave(values, samplesPerUnit, plotsLegend);
 	}
 	/**
 	 * Creates an empty plot
@@ -119,9 +104,9 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	public void prepPlot() {
 		setBackground(backGroundColor);
-		setPreferredSize(new Dimension(ScreenSizeTool.WIDTH * 3/4, ScreenSizeTool.HEIGHT * 1/2));
-		xOffset = ScreenSizeTool.WIDTH * 3/4 * 1/2;
-		yOffset = ScreenSizeTool.HEIGHT * 1/2 * 1/2;
+		panelSize = new Dimension(ScreenSizeTool.WIDTH * 3/4, ScreenSizeTool.HEIGHT * 1/2);
+		setPreferredSize(panelSize);
+		offsetVec = new Vector2D(panelSize.getWidth() * 1/2, panelSize.getHeight() * 1/2);
 		channelsToPlot = new int[1];
 		channelsToPlot[0] = 0;
 
@@ -134,13 +119,13 @@ public class Plot extends JPanel implements Runnable {
 		springLayout.putConstraint(SpringLayout.EAST, btn_settings, -10, SpringLayout.EAST, this);
 		add(btn_settings);
 		
-		lbl_pixPerUX = new JLabel("Pixels per unit, X axis: " + xPixelsPerUnit);
+		lbl_pixPerUX = new JLabel("Pixels per unit, X axis: " + pixelsPerUnitVec.getX());
 		lbl_pixPerUX.setForeground(Color.LIGHT_GRAY);
 		springLayout.putConstraint(SpringLayout.NORTH, lbl_pixPerUX, 10, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, lbl_pixPerUX, 20, SpringLayout.WEST, this);
 		add(lbl_pixPerUX);
 		
-		lbl_pixPerUY = new JLabel("Pixels per unit, Y axis: " + yPixelsPerUnit);
+		lbl_pixPerUY = new JLabel("Pixels per unit, Y axis: " + pixelsPerUnitVec.getY());
 		lbl_pixPerUY.setForeground(Color.LIGHT_GRAY);
 		springLayout.putConstraint(SpringLayout.NORTH, lbl_pixPerUY, 25, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, lbl_pixPerUY, 20, SpringLayout.WEST, this);
@@ -153,11 +138,13 @@ public class Plot extends JPanel implements Runnable {
 		addMouseMotionListener(new MouseMotionAdapter() {
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				xOffset += e.getX() - mousePosX;
-				yOffset += e.getY() - mousePosY;
+//				xOffset += e.getX() - mousePosX;
+//				yOffset += e.getY() - mousePosY;
+				offsetVec.add(e.getX() - mousePosVec.getX(), e.getY() - mousePosVec.getY());
 
-				mousePosX = e.getX();
-				mousePosY = e.getY();
+//				mousePosX = e.getX();
+//				mousePosY = e.getY();
+				mousePosVec.setValues(e.getX(), e.getY());
 
 				repaint();
 			}
@@ -166,10 +153,11 @@ public class Plot extends JPanel implements Runnable {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				mousePosX = e.getX();
-				mousePosY = e.getY();
-				if (e.getModifiersEx() == 1088) xOffset++;
-				if (e.getModifiersEx() == 1152) xOffset--;
+//				mousePosX = e.getX();
+//				mousePosY = e.getY();
+				mousePosVec.setValues(e.getX(), e.getY());
+				if (e.getModifiersEx() == 1088) offsetVec.addX(1);
+				if (e.getModifiersEx() == 1152) offsetVec.addX(-1);
 				repaint();
 			}
 		});//End addMouseListener
@@ -193,32 +181,21 @@ public class Plot extends JPanel implements Runnable {
 	/**
 	 * Uses the information from the wav file to create the waveform
 	 */
-	public void loadWave() {
-		if (infoReservoir != null) {
-			values = infoReservoir.getDataInfo().getChannelSeparatedData();//Sets the values
-			if (values != null && values.length > 0) {
-				samplesPerUnit = infoReservoir.getFormatInfo().getSampleRate();//Sets the necessary information to plot
-				nbPossiblePlots = values.length;
-				nbSamples = values[channelsToPlot[0]].length;
-				
-				if (waveFormSet != null) waveFormSet.close();//Takes care of the old plot
-				waveFormSet = new SettingWindow(infoReservoir, this);
-				arrayFillingNecessary = true;
-				
-				repaint();
-			}
+	public void loadWave(double[][] values, double samplesPerUnit, String[] plotsLegend) {
+		this.values = values;
+		this.samplesPerUnit = samplesPerUnit;
+		nbPossiblePlots = values.length;
+		nbSamples = 0;
+		for (int plot = 0; plot < nbPossiblePlots; plot++) {//Checks for max samples
+			nbSamples = values[plot].length > nbSamples ? values[plot].length : nbSamples;
 		}
+		//Takes care of the old plot
+		if (waveFormSet != null) waveFormSet.close();
+		waveFormSet = new SettingWindow(plotsLegend, this);
+		arrayFillingNecessary = true;
+		repaint();
 	}//End loadWave
-	/**
-	 * Sets the info of the wav file
-	 * @param wavInfo Object that contains the information about the wav file
-	 */
-	public void setWavInfo(WavInfo infoReservoir) {
-		channelsToPlot = new int[1];
-		channelsToPlot[0] = 0;
-		this.infoReservoir = infoReservoir;
-	}
-
+	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -235,16 +212,16 @@ public class Plot extends JPanel implements Runnable {
 	 * @param g2d The graphics item
 	 */
 	public void paintWaveForm(Graphics2D g2d) {
-		samplesPerPixel = samplesPerUnit / xPixelsPerUnit;
+		samplesPerPixel = samplesPerUnit / pixelsPerUnitVec.getX();
 		
 		int sampleOffset = 0;//The amount of samples that are off screen due the the xOffset
 		int remainingSamples = nbSamples;
-		if (xOffset < 0) {
-			sampleOffset = (int) Math.round(samplesPerPixel * -xOffset);
+		if (offsetVec.getX() < 0) {
+			sampleOffset = (int) Math.round(samplesPerPixel * -offsetVec.getX());
 			remainingSamples = nbSamples - sampleOffset;
 		}
 		//Only draws if some part of the waveform is visible
-		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
+		if (remainingSamples > 0 && offsetVec.getX() < getWidth() && channelsToPlot.length != 0) {
 			double pixelIncrement = samplesPerPixel >= 1 ? 1 : 1/samplesPerPixel;//Increments the x axis by this amount for each iteration of the next loop
 			if (arrayFillingNecessary && pixelIncrement == 1 && samplesPerPixel > sampleDensityThreshold) {
 				minMaxArray = new double[channelsToPlot.length][(int) Math.ceil(nbSamples / samplesPerPixel)][2];
@@ -262,32 +239,32 @@ public class Plot extends JPanel implements Runnable {
 //				int sampleLength;
 				if (nbSamples > 1) {
 					if (pixelIncrement == 1) {//More than 1 sample per pixel allows to increment x by 1 each time
-						xIni = xOffset < 0 ? 0 : xOffset;
+						xIni = offsetVec.getX() < 0 ? 0 : offsetVec.getFlooredX();
 //						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
-						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleOffset] * yPixelsPerUnit);
+						yIni = offsetVec.getFlooredY() - (int) Math.round(values[channelsToPlot[channel]][sampleOffset] * pixelsPerUnitVec.getY());
 						//Fills the value array
 						
 						int index = 0;
-						int indexOffset = xOffset < 0 ? -xOffset : 0;
+						int indexOffset = offsetVec.getX() < 0 ? -offsetVec.getFlooredX() : 0;
 						do {
 							xFin = xIni + 1;
 
-							sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixel);
+							sampleNb = (int) Math.round((xIni - offsetVec.getX()) * samplesPerPixel);
 //							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixel) - sampleNb;
 
 							//First way to compute
 							if (samplesPerPixel > sampleDensityThreshold) {
-								yIni = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][0] * yPixelsPerUnit);
-								yFin = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][1] * yPixelsPerUnit);
+								yIni = offsetVec.getFlooredY() - (int) Math.round(minMaxArray[channel][index + indexOffset][0] * pixelsPerUnitVec.getY());
+								yFin = offsetVec.getFlooredY() - (int) Math.round(minMaxArray[channel][index + indexOffset][1] * pixelsPerUnitVec.getY());
 							}
 							//Second way to compute
 							else {
 								double[] minMax = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, (int) Math.round(samplesPerPixel));
-								yIni = yOffset - (int) Math.round(minMax[0] * yPixelsPerUnit);
-								yFin = yOffset - (int) Math.round(minMax[1] * yPixelsPerUnit);
+								yIni = offsetVec.getFlooredY() - (int) Math.round(minMax[0] * pixelsPerUnitVec.getY());
+								yFin = offsetVec.getFlooredY() - (int) Math.round(minMax[1] * pixelsPerUnitVec.getY());
 							}
-							g2d.drawLine(xIni, yOffset, xFin, yFin);
-							g2d.drawLine(xIni, yOffset, xFin, yIni);
+							g2d.drawLine(xIni, offsetVec.getFlooredY(), xFin, yFin);
+							g2d.drawLine(xIni, offsetVec.getFlooredY(), xFin, yIni);
 
 
 							xIni = xFin;
@@ -299,15 +276,15 @@ public class Plot extends JPanel implements Runnable {
 						int iterationNb = 1;
 
 //						sampleNb = (int) (( (xOffset < 0 ? 0 : xOffset) - xOffset) * samplesPerPixels);
-						sampleNb = (int) ((xOffset < 0 ? -xOffset : 0) * samplesPerPixel);
-						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * yPixelsPerUnit);
+						sampleNb = (int) ((offsetVec.getX() < 0 ? -offsetVec.getFlooredX() : 0) * samplesPerPixel);
+						yIni = offsetVec.getFlooredY() - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * pixelsPerUnitVec.getY());
 
-						double xInitialeValue = (sampleNb / samplesPerPixel) + xOffset;//Decides the initial x position based on the sample used
+						double xInitialeValue = (sampleNb / samplesPerPixel) + offsetVec.getX();//Decides the initial x position based on the sample used
 						xIni = (int) xInitialeValue;
 
 						do {
 							xFin = (int) Math.round(xInitialeValue + iterationNb * pixelIncrement);
-							yFin = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleNb + 1] * yPixelsPerUnit);
+							yFin = offsetVec.getFlooredY() - (int) Math.round(values[channelsToPlot[channel]][sampleNb + 1] * pixelsPerUnitVec.getY());
 
 							g2d.drawLine(xIni, yIni, xFin, yFin);
 
@@ -319,7 +296,7 @@ public class Plot extends JPanel implements Runnable {
 						} while(xFin < getWidth() && sampleNb + 1 < nbSamples);
 					}//End if
 				}//End if
-				else g2d.drawLine(xOffset, yOffset, xOffset, yOffset - (int) Math.round(values[channelsToPlot[channel]][0] * yPixelsPerUnit));//Draws only the first sample
+				else g2d.drawLine(offsetVec.getFlooredX(), offsetVec.getFlooredY(), offsetVec.getFlooredX(), offsetVec.getFlooredY() - (int) Math.round(values[channelsToPlot[channel]][0] * pixelsPerUnitVec.getY()));//Draws only the first sample
 			}//End plotting
 			arrayFillingNecessary = false;
 		}
@@ -390,8 +367,8 @@ public class Plot extends JPanel implements Runnable {
 		g2dText.setColor(new Color(255, 255, 255, 175));
 
 		//Draws main axes
-		g2dText.drawLine(xOffset, 0, xOffset, getHeight());//y axis
-		g2dText.drawLine(0, yOffset, getWidth(), yOffset);//x axis
+		g2dText.drawLine(offsetVec.getFlooredX(), 0, offsetVec.getFlooredX(), getHeight());//y axis
+		g2dText.drawLine(0, offsetVec.getFlooredY(), getWidth(), offsetVec.getFlooredY());//x axis
 
 		g2dText.setColor(new Color(255, 255, 255, 255));
 
@@ -401,29 +378,29 @@ public class Plot extends JPanel implements Runnable {
 		int yPos;
 		int i;//Index value
 		//Draws the unit increments on the x axis--------------------------------------------------------------------------------------
-		double pixelsPerXStep = xPixelsPerUnit * xScale;//Amount of pixel in-between white lines
-		pixMCTB = ((xOffset % pixelsPerXStep) + pixelsPerXStep) % pixelsPerXStep;//Pixel multiple closest to border
+		double pixelsPerXStep = pixelsPerUnitVec.getX() * scaleVec.getX();//Amount of pixel in-between white lines
+		pixMCTB = ((offsetVec.getX() % pixelsPerXStep) + pixelsPerXStep) % pixelsPerXStep;//Pixel multiple closest to border
 		i = 0;
 		do {
 			xPos = (int) Math.round(pixMCTB + pixelsPerXStep*i);
-			yPos = yOffset;
-			printXCenteredString((Math.round((-xOffset + pixMCTB + pixelsPerXStep*i)/xPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
+			yPos = offsetVec.getFlooredY();
+			printXCenteredString((Math.round((-offsetVec.getX() + pixMCTB + pixelsPerXStep*i)/pixelsPerUnitVec.getX()*10000)/10000.0) + "", xPos, yPos, g2dText);
 			g2dSoftLines.drawLine(xPos, 0, xPos, getHeight());
 			i++;
 		}	while(pixelsPerXStep*i < getWidth());
 
 		//Draws the unit increments on the y axis--------------------------------------------------------------------------------------
-		double pixelsPerYStep = yPixelsPerUnit * yScale;//Amount of pixel in-between white lines
-		pixMCTB = ((yOffset % pixelsPerYStep) + pixelsPerYStep) % pixelsPerYStep;
+		double pixelsPerYStep = pixelsPerUnitVec.getY() * scaleVec.getY();//Amount of pixel in-between white lines
+		pixMCTB = ((offsetVec.getY() % pixelsPerYStep) + pixelsPerYStep) % pixelsPerYStep;
 		i = 0;
 		do {
-			if (yOffset -pixMCTB - pixelsPerYStep*i < EPSILON && yOffset -pixMCTB - pixelsPerYStep*i > -EPSILON) {//Doesn't redraw the main axis and the other 0
+			if (offsetVec.getY() -pixMCTB - pixelsPerYStep*i < EPSILON && offsetVec.getY() -pixMCTB - pixelsPerYStep*i > -EPSILON) {//Doesn't redraw the main axis and the other 0
 				i++;
 				continue;
 			}
-			xPos = xOffset;
-			yPos = yOffset + (int) Math.round(-yOffset + pixMCTB + pixelsPerYStep*i);
-			printYCenteredString((Math.round((yOffset -pixMCTB - pixelsPerYStep*i)/yPixelsPerUnit*10000)/10000.0) + "", xPos, yPos, g2dText);
+			xPos = offsetVec.getFlooredX();
+			yPos = offsetVec.getFlooredY() + (int) Math.round(-offsetVec.getFlooredY() + pixMCTB + pixelsPerYStep*i);
+			printYCenteredString((Math.round((offsetVec.getFlooredY() -pixMCTB - pixelsPerYStep*i)/pixelsPerUnitVec.getY()*10000)/10000.0) + "", xPos, yPos, g2dText);
 			g2dSoftLines.drawLine(0, yPos, getWidth(), yPos);
 			i++;
 		}	while(pixelsPerYStep*i < getHeight());
@@ -490,38 +467,46 @@ public class Plot extends JPanel implements Runnable {
 	public void zoomX(MouseWheelEvent e) {
 		arrayFillingNecessary = true;
 		int zoomDirection = e.getWheelRotation();//(- -> in ; + -> out)
-		xZoomAmount += zoomDirection;
+//		xZoomAmount += zoomDirection;
+		zoomAmountVec.addX(zoomDirection);
 		adjustThresholdsTight("x");
 		
 		//Adjusts the x/y offset to keep the cursor at the same coordinates when zooming in/out
-		xOffset += Math.round((e.getX() - xOffset) * (1 - Math.pow(zoomPercentage, zoomDirection)));
+//		xOffset += Math.round((e.getX() - xOffset) * (1 - Math.pow(zoomPercentage, zoomDirection)));
+		offsetVec.addX(Math.round((e.getX() - offsetVec.getX()) * (1 - Math.pow(zoomPercentage, zoomDirection))));
 		
 		//Adjusts the scale if too zoomed in or out for the x axis
-		if (Math.pow(zoomPercentage, xZoomAmount) >= xZoomInThreshold) {//Too zoomed in
-			if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
-				xDivAmountByFiveHalf++;
+		if (Math.pow(zoomPercentage, zoomAmountVec.getX()) >= zoomInThresholdVec.getX()) {//Too zoomed in
+			if (((divAmountByTwoVec.getX() + divAmountByFiveHalfVec.getX()) % 3 + 3) % 3 == 1) {
+//				xDivAmountByFiveHalf++;
+				divAmountByFiveHalfVec.addX(1);
 			}
 			else {
-				xDivAmountByTwo++;
+//				xDivAmountByTwo++;
+				divAmountByTwoVec.addX(1);
 			}
 		}
-		else if (Math.pow(zoomPercentage, xZoomAmount) < xZoomOutThreshold) {//Too zoomed out
-			if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
-				xDivAmountByFiveHalf--;
+		else if (Math.pow(zoomPercentage, zoomAmountVec.getX()) < zoomOutThresholdVec.getX()) {//Too zoomed out
+			if (((divAmountByTwoVec.getX() + divAmountByFiveHalfVec.getX()) % 3 + 3) % 3 == 2) {
+//				xDivAmountByFiveHalf--;
+				divAmountByFiveHalfVec.addX(-1);
 			}
 			else {
-				xDivAmountByTwo--;
+//				xDivAmountByTwo--;
+				divAmountByTwoVec.addX(-1);
 			}
 		}
 		
 		//Adjusts the scale
-		xScale = Math.pow(2, -xDivAmountByTwo) * Math.pow(2.5, -xDivAmountByFiveHalf);
+//		xScale = Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX());
+		scaleVec.setX(Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX()));
 
 		//Manages the amount of pixels per unit
-		xPixelsPerUnit = startingPixelsPerUnit * Math.pow(zoomPercentage, xZoomAmount);
+//		xPixelsPerUnit = startingPixelsPerUnit * Math.pow(zoomPercentage, zoomAmountVec.getX());
+		pixelsPerUnitVec.setX(startingPixelsPerUnit * Math.pow(zoomPercentage, zoomAmountVec.getX()));
 
 		//Gives a bit of info on the panel
-		lbl_pixPerUX.setText("Pixels per unit, X axis: " + Math.round((xPixelsPerUnit * 1000)) / 1000.0);
+		lbl_pixPerUX.setText("Pixels per unit, X axis: " + Math.round((pixelsPerUnitVec.getX() * 1000)) / 1000.0);
 		
 	}
 	/**
@@ -529,38 +514,46 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	public void zoomY(MouseWheelEvent e) {
 		int zoomDirection = e.getWheelRotation();//(- -> in ; + -> out)
-		yZoomAmount += zoomDirection;
+//		yZoomAmount += zoomDirection;
+		zoomAmountVec.addY(zoomDirection);
 		adjustThresholdsTight("y");
 
 		//Adjusts the x/y offset to keep the cursor at the same coordinates when zooming in/out
-		yOffset += Math.round((e.getY() - yOffset) * (1 - Math.pow(zoomPercentage, zoomDirection)));
+//		yOffset += Math.round((e.getY() - yOffset) * (1 - Math.pow(zoomPercentage, zoomDirection)));
+		offsetVec.addY(Math.round((e.getY() - offsetVec.getY()) * (1 - Math.pow(zoomPercentage, zoomDirection))));
 
 		//Adjusts the scale if too zoomed in or out for the y axis
-		if (Math.pow(zoomPercentage, yZoomAmount) >= yZoomInThreshold) {//Too zoomed in
-			if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
-				yDivAmountByFiveHalf++;
+		if (Math.pow(zoomPercentage, zoomAmountVec.getY()) >= zoomInThresholdVec.getY()) {//Too zoomed in
+			if (((divAmountByTwoVec.getY() + divAmountByFiveHalfVec.getY()) % 3 + 3) % 3 == 1) {
+//				yDivAmountByFiveHalf++;
+				divAmountByFiveHalfVec.addY(1);
 			}
 			else {
-				yDivAmountByTwo++;
+//				yDivAmountByTwo++;
+				divAmountByTwoVec.addY(1);
 			}
 		}
-		else if (Math.pow(zoomPercentage, yZoomAmount) < yZoomOutThreshold) {//Too zoomed out
-			if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
-				yDivAmountByFiveHalf--;
+		else if (Math.pow(zoomPercentage, zoomAmountVec.getY()) < zoomOutThresholdVec.getY()) {//Too zoomed out
+			if (((divAmountByTwoVec.getY() + divAmountByFiveHalfVec.getY()) % 3 + 3) % 3 == 2) {
+//				yDivAmountByFiveHalf--;
+				divAmountByFiveHalfVec.addY(-1);
 			}
 			else {
-				yDivAmountByTwo--;
+//				yDivAmountByTwo--;
+				divAmountByTwoVec.addY(-1);
 			}
 		}
 
 		//Adjusts the scale
-		yScale = Math.pow(2, -yDivAmountByTwo) * Math.pow(2.5, -yDivAmountByFiveHalf);
+//		yScale = Math.pow(2, -divAmountByTwoVec.getY()) * Math.pow(2.5, -divAmountByFiveHalfVec.getY());
+		scaleVec.setY(Math.pow(2, -divAmountByTwoVec.getY()) * Math.pow(2.5, -divAmountByFiveHalfVec.getY()));
 
 		//Manages the amount of pixels per unit
-		yPixelsPerUnit = startingPixelsPerUnit * Math.pow(zoomPercentage, yZoomAmount);
+//		yPixelsPerUnit = startingPixelsPerUnit * Math.pow(zoomPercentage, zoomAmountVec.getY());
+		pixelsPerUnitVec.setY(startingPixelsPerUnit * Math.pow(zoomPercentage, zoomAmountVec.getY()));
 
 		//Gives a bit of info on the panel
-		lbl_pixPerUY.setText("Pixels per unit, Y axis: " + Math.round((yPixelsPerUnit * 1000)) / 1000.0);
+		lbl_pixPerUY.setText("Pixels per unit, Y axis: " + Math.round((pixelsPerUnitVec.getY() * 1000)) / 1000.0);
 	}
 	
 	/**
@@ -575,12 +568,14 @@ public class Plot extends JPanel implements Runnable {
 		
 		//Checks which axis to change
 		if (axis.equals("x")) {
-			divAmountByTwo = xDivAmountByTwo;
-			divAmountByFiveHalf = xDivAmountByFiveHalf;
+//			divAmountByTwo = xDivAmountByTwo;
+			divAmountByTwo = divAmountByTwoVec.getFlooredX();
+			divAmountByFiveHalf = divAmountByFiveHalfVec.getFlooredX();
 		}
 		else {
-			divAmountByTwo = yDivAmountByTwo;
-			divAmountByFiveHalf = yDivAmountByFiveHalf;
+//			divAmountByTwo = yDivAmountByTwo;
+			divAmountByTwo = divAmountByTwoVec.getFlooredY();
+			divAmountByFiveHalf = divAmountByFiveHalfVec.getFlooredY();
 		}
 		
 		//Computes the threshold
@@ -599,12 +594,16 @@ public class Plot extends JPanel implements Runnable {
 		
 		//Sets the threshold
 		if (axis.equals("x")) {
-			xZoomOutThreshold = zoomOutThreshold * gridSize;
-			xZoomInThreshold = zoomInThreshold * gridSize;
+//			xZoomOutThreshold = zoomOutThreshold * gridSize;
+			zoomOutThresholdVec.setX(zoomOutThreshold * gridSize);
+//			xZoomInThreshold = zoomInThreshold * gridSize;
+			zoomInThresholdVec.setX(zoomInThreshold * gridSize);
 		}
 		else {
-			yZoomOutThreshold = zoomOutThreshold * gridSize;
-			yZoomInThreshold = zoomInThreshold * gridSize;
+//			yZoomOutThreshold = zoomOutThreshold * gridSize;
+			zoomOutThresholdVec.setY(zoomOutThreshold * gridSize);
+//			yZoomInThreshold = zoomInThreshold * gridSize;
+			zoomInThresholdVec.setY(zoomInThreshold * gridSize);
 		}
 	}
 
@@ -618,44 +617,53 @@ public class Plot extends JPanel implements Runnable {
 			adjustThresholdsTight("x");
 			adjustThresholdsTight("y");
 			//y
-			if (Math.pow(zoomPercentage, yZoomAmount) >= yZoomInThreshold) {//Too zoomed in
-				if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
-					yDivAmountByFiveHalf++;
+			if (Math.pow(zoomPercentage, zoomAmountVec.getY()) >= zoomInThresholdVec.getY()) {//Too zoomed in
+				if (((divAmountByTwoVec.getY() + divAmountByFiveHalfVec.getY()) % 3 + 3) % 3 == 1) {
+//					yDivAmountByFiveHalf++;
+					divAmountByFiveHalfVec.addY(1);
 				}
 				else {
-					yDivAmountByTwo++;
+					divAmountByTwoVec.addY(1);
 				}
 			}
-			else if (Math.pow(zoomPercentage, yZoomAmount) < yZoomOutThreshold) {//Too zoomed out
-				if (((yDivAmountByTwo + yDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
-					yDivAmountByFiveHalf--;
+			else if (Math.pow(zoomPercentage, zoomAmountVec.getY()) < zoomOutThresholdVec.getY()) {//Too zoomed out
+				if (((divAmountByTwoVec.getY() + divAmountByFiveHalfVec.getY()) % 3 + 3) % 3 == 2) {
+//					yDivAmountByFiveHalf--;
+					divAmountByFiveHalfVec.addY(-1);
 				}
 				else {
-					yDivAmountByTwo--;
+//					yDivAmountByTwo--;
+					divAmountByTwoVec.addY(-1);
 				}
 			} else finished = true;
 			//x
-			if (Math.pow(zoomPercentage, xZoomAmount) >= xZoomInThreshold) {//Too zoomed in
-				if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 1) {
-					xDivAmountByFiveHalf++;
+			if (Math.pow(zoomPercentage, zoomAmountVec.getX()) >= zoomInThresholdVec.getX()) {//Too zoomed in
+				if (((divAmountByTwoVec.getX() + divAmountByFiveHalfVec.getX()) % 3 + 3) % 3 == 1) {
+//					xDivAmountByFiveHalf++;
+					divAmountByFiveHalfVec.addX(1);
 				}
 				else {
-					xDivAmountByTwo++;
+//					xDivAmountByTwo++;
+					divAmountByTwoVec.addX(1);
 				}
 			}
-			else if (Math.pow(zoomPercentage, xZoomAmount) < xZoomOutThreshold) {//Too zoomed out
-				if (((xDivAmountByTwo + xDivAmountByFiveHalf) % 3 + 3) % 3 == 2) {
-					xDivAmountByFiveHalf--;
+			else if (Math.pow(zoomPercentage, zoomAmountVec.getX()) < zoomOutThresholdVec.getX()) {//Too zoomed out
+				if (((divAmountByTwoVec.getX() + divAmountByFiveHalfVec.getX()) % 3 + 3) % 3 == 2) {
+//					xDivAmountByFiveHalf--;
+					divAmountByFiveHalfVec.addX(-1);
 				}
 				else {
-					xDivAmountByTwo--;
+//					xDivAmountByTwo--;
+					divAmountByTwoVec.addX(-1);
 				}
 			} else finished = true;
 		} while (!finished);
 
 		//Adjusts the scale
-		yScale = Math.pow(2, -yDivAmountByTwo) * Math.pow(2.5, -yDivAmountByFiveHalf);
-		xScale = Math.pow(2, -xDivAmountByTwo) * Math.pow(2.5, -xDivAmountByFiveHalf);
+//		yScale = Math.pow(2, -divAmountByTwoVec.getY()) * Math.pow(2.5, -divAmountByFiveHalfVec.getY());
+//		xScale = Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX());
+		scaleVec.setValues(Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX()),
+				Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX()));
 
 		repaint();
 	}
@@ -749,13 +757,13 @@ public class Plot extends JPanel implements Runnable {
 	public int getNbPossiblePlots() {
 		return nbPossiblePlots;
 	}
-	/**
-	 * Gets the information about the wav file
-	 * @return The infoReservoir variable
-	 */
-	public WavInfo getInfoReservoir() {
-		return infoReservoir;
-	}
+//	/**
+//	 * Gets the information about the wav file
+//	 * @return The infoReservoir variable
+//	 */
+//	public WavInfo getInfoReservoir() {
+//		return infoReservoir;
+//	}
 	/**
 	 * Gets the color array that draws the plots
 	 * @return The color array
@@ -764,7 +772,7 @@ public class Plot extends JPanel implements Runnable {
 		return colors;
 	}
 	public int getxOffset() {
-		return xOffset;
+		return offsetVec.getFlooredX();
 	}
 	public void setAudio(AudioPlayback audio) {
 		this.audio = audio;
@@ -773,7 +781,7 @@ public class Plot extends JPanel implements Runnable {
 		return samplesPerPixel;
 	}
 	public double getxPixelsPerUnit() {
-		return xPixelsPerUnit;
+		return pixelsPerUnitVec.getX();
 	}
 	public void setPlayBackSpeed(double playBackSpeed) {
 		this.playBackSpeed = playBackSpeed;
