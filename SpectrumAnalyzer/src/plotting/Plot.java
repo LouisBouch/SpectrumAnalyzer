@@ -89,7 +89,9 @@ public class Plot extends JPanel implements Runnable {
 	private double[][][] minMaxArray;//Stores the max and min values of the current array
 	
 	private boolean arrayFillingNecessary = true;//Check if there is a need to refill the array
-
+	
+	private int sampleDensityThreshold = 800;//How many samples per pixels are required to switch to a different way of computing values
+	
 
 	/**
 	 * Creates the object and the wave at the same time
@@ -232,10 +234,13 @@ public class Plot extends JPanel implements Runnable {
 		}
 		//Only draws if some part of the waveform is visible
 		if (remainingSamples > 0 && xOffset < getWidth() && channelsToPlot.length != 0) {
-			if (arrayFillingNecessary) minMaxArray = new double[channelsToPlot.length][(int) Math.ceil(nbSamples / samplesPerPixel)][2];
+			double pixelIncrement = samplesPerPixel >= 1 ? 1 : 1/samplesPerPixel;//Increments the x axis by this amount for each iteration of the next loop
+			if (arrayFillingNecessary && pixelIncrement == 1 && samplesPerPixel > sampleDensityThreshold) {
+				minMaxArray = new double[channelsToPlot.length][(int) Math.ceil(nbSamples / samplesPerPixel)][2];
+				fillArray(minMaxArray, values, channelsToPlot.length, channelsToPlot);
+			}
 			for (int channel = 0; channel < channelsToPlot.length; channel++) {//Plots every selected channels
 				g2d.setColor(colors[channelsToPlot[channel] % colors.length]);//Channels keep their color
-				double pixelIncrement = samplesPerPixel >= 1 ? 1 : 1/samplesPerPixel;//Increments the x axis by this amount for each iteration of the next loop
 
 				int xIni;
 				int yIni;
@@ -250,7 +255,6 @@ public class Plot extends JPanel implements Runnable {
 //						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][(int) Math.round((xIni - xOffset) * samplesPerPixels)] * yPixelsPerUnit);
 						yIni = yOffset - (int) Math.round(values[channelsToPlot[channel]][sampleOffset] * yPixelsPerUnit);
 						//Fills the value array
-						if (arrayFillingNecessary) fillArray(minMaxArray[channel], values[channelsToPlot[channel]]);
 						
 						int index = 0;
 						int indexOffset = xOffset < 0 ? -xOffset : 0;
@@ -260,17 +264,19 @@ public class Plot extends JPanel implements Runnable {
 							sampleNb = (int) Math.round((xIni - xOffset) * samplesPerPixel);
 //							sampleLength = (int) Math.round((xFin - xOffset) * samplesPerPixel) - sampleNb;
 
-							//First way to draw
-							yIni = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][0] * yPixelsPerUnit);
-							yFin = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][1] * yPixelsPerUnit);
-
-
+							//First way to compute
+							if (samplesPerPixel > sampleDensityThreshold) {
+								yIni = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][0] * yPixelsPerUnit);
+								yFin = yOffset - (int) Math.round(minMaxArray[channel][index + indexOffset][1] * yPixelsPerUnit);
+							}
+							//Second way to compute
+							else {
+								double[] minMax = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, (int) Math.round(samplesPerPixel));
+								yIni = yOffset - (int) Math.round(minMax[0] * yPixelsPerUnit);
+								yFin = yOffset - (int) Math.round(minMax[1] * yPixelsPerUnit);
+							}
 							g2d.drawLine(xIni, yOffset, xFin, yFin);
 							g2d.drawLine(xIni, yOffset, xFin, yIni);
-
-							//Second way to draw
-//							yFin = yOffset - (int) Math.round(meanValueOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleLength) * yPixelsPerUnit);
-//							g2d.drawLine(xIni, yIni, xFin, yFin);
 
 
 							xIni = xFin;
@@ -311,9 +317,11 @@ public class Plot extends JPanel implements Runnable {
 	/**
 	 * Fills the value array
 	 */
-	public void fillArray(double[][] arrayToFill, double[] values) {
-		for (int sample = 0; sample < arrayToFill.length; sample++) {
-			arrayToFill[sample] = minMaxOfSampleChunk(values, (int) Math.round(sample * samplesPerPixel), (int) Math.round(samplesPerPixel));
+	public void fillArray(double[][][] arrayToFill, double[][] values, int channels, int[] channelsToPlot) {
+		for (int channel = 0; channel < channels; channel++) {
+			for (int sample = 0; sample < arrayToFill[channel].length - 1; sample++) {
+				arrayToFill[channel][sample] = minMaxOfSampleChunk(values[channelsToPlot[channel]], (int) Math.round(sample * samplesPerPixel), (int) Math.round(samplesPerPixel));
+			}
 		}
 	}
 	

@@ -2,6 +2,7 @@ package soundProcessing;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -22,11 +23,11 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SpringLayout;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import java.awt.Cursor;
 
 public class AudioSettingsWindow extends JFrame {
 	
@@ -75,7 +76,7 @@ public class AudioSettingsWindow extends JFrame {
 		JComboBox<Mixer.Info> comboBox_playBackDevice = new JComboBox<>(playbackDevices);
 //		JComboBox comboBox_playBackDevice = new JComboBox(playbackDevices);
 		for (Component comp : comboBox_playBackDevice.getComponents()) {
-			if (comp instanceof AbstractButton) comp.setVisible(false);;//Removes drop down button
+			if (comp instanceof AbstractButton) comp.setVisible(false);//Removes drop down button
 		}
 		comboBox_playBackDevice.setMaximumRowCount(4);
 		Dimension originalSize = comboBox_playBackDevice.getPreferredSize();
@@ -121,7 +122,7 @@ public class AudioSettingsWindow extends JFrame {
 		comboBox_playBackDevice.setVisible(true);
 		getContentPane().add(comboBox_playBackDevice);
 		
-		JLabel lbl_pbS = new JLabel("Playback speed %: ");
+		JLabel lbl_pbS = new JLabel("Playback speed %:");
 		lbl_pbS.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		lbl_pbS.setForeground(new Color(200, 200, 200));
 		sl_contentPane.putConstraint(SpringLayout.NORTH, lbl_pbS, 5, SpringLayout.NORTH, pane);
@@ -129,6 +130,9 @@ public class AudioSettingsWindow extends JFrame {
 		getContentPane().add(lbl_pbS);
 		
 		JSlider spinner_playbackSpeed = new JSlider();
+		spinner_playbackSpeed.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+		spinner_playbackSpeed.setBackground(new Color(80, 85, 110));
+		spinner_playbackSpeed.setForeground(new Color(200, 200, 200));
 		spinner_playbackSpeed.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
