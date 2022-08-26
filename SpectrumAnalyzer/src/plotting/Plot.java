@@ -20,23 +20,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import soundProcessing.AudioPlayback;
 import tools.Vector2D;
 
-public class Plot extends JPanel implements Runnable {
+public class Plot extends JPanel {
 
 	private static final long serialVersionUID = -8205056792145014780L;
 	
 	private Dimension panelSize;//Sets the panel size
 	private JPanel panel = this;
 	
-	private AudioPlayback audio;
-	private AudioBar bar = new AudioBar(this);
-	private double playBackSpeed = 1;//Speed at which the audio is played
-	private boolean stopped = true;//True if data was stopped, not paused
+//	private AudioPlayback audio;
+//	private AudioBar bar = new AudioBar(this);
+//	private double playBackSpeed = 1;//Speed at which the audio is played
+//	private boolean stopped = true;//True if data was stopped, not paused
 	
 	
-	private boolean running = false;//True if audio is playing
+//	private boolean running = false;//True if audio is playing
 
 	private SettingWindow waveFormSet;//The settings window
 	
@@ -201,7 +200,7 @@ public class Plot extends JPanel implements Runnable {
 
 		paintAxes(g2d);
 		if (values != null) paintWaveForm(g2d);
-		if (bar != null) bar.paint(g2d);
+//		if (bar != null) bar.paint(g2d);
 	}//End paintComponent
 	
 	/**
@@ -657,80 +656,80 @@ public class Plot extends JPanel implements Runnable {
 
 		repaint();
 	}
-	/**
-	 * Runs the audio bar
-	 */
-	@Override
-	public void run() {
-		double ini = System.nanoTime();
-		
-		//Makes sure everything starts at the same time
-		while (audio.getClip().getMicrosecondPosition() == 0) {
-			ini = System.nanoTime();
-			sleep(5);
-		}
-		double offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
-		if (offset != 0) ini -= offset / playBackSpeed * 1E9;
-		int rep = 0;
-		
-		//Adjusts the bar and repaints
-		while(running) {
-			rep = (rep+1) % 100;
-			bar.setTimeOffset(1E-9*(System.nanoTime() - ini)*playBackSpeed);
-			if (rep == 1) {
-				offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
-				if (Math.abs(offset) > 0.05) {
-					ini -= offset / playBackSpeed * 1E9;
-				}
-			}
-			if((System.nanoTime()-ini)*playBackSpeed >= audio.getClip().getMicrosecondLength() * 1E3 * playBackSpeed) {
-				stop();
-				audio.stop();
-			}
-			repaint();
-			sleep(10);
-		}
-		if (stopped) bar.setTimeOffset(0);
-		repaint();
-	}
-	/**
-	 * Pauses the threads
-	 * @param sleep Amount of time to sleep in milliseconds
-	 */
-	public void sleep(int sleep) {
-		try {
-			Thread.sleep(sleep);
-		}
-		catch(InterruptedException e) {
-			System.out.println(e);
-		}
-	}
-	/**
-	 * Starts the repaints
-	 */
-	public void start() {
-		if (!running) {
-			running = true;
-			stopped = false;
-			final Thread thread = new Thread(this);
-			thread.start();
-		}
-	}
-	/**
-	 * Pauses the repaints
-	 */
-	public void pause() {
-		if (running) running = false;
-	}
-	/**
-	 * Stops the repaints
-	 */
-	public void stop() {
-		if (running) running = false;
-		bar.setTimeOffset(0);
-		stopped = true;
-		repaint();
-	}
+//	/**
+//	 * Runs the audio bar
+//	 */
+//	@Override
+//	public void run() {
+//		double ini = System.nanoTime();
+//		
+//		//Makes sure everything starts at the same time
+//		while (audio.getClip().getMicrosecondPosition() == 0) {
+//			ini = System.nanoTime();
+//			sleep(5);
+//		}
+//		double offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
+//		if (offset != 0) ini -= offset / playBackSpeed * 1E9;
+//		int rep = 0;
+//		
+//		//Adjusts the bar and repaints
+//		while(running) {
+//			rep = (rep+1) % 100;
+//			bar.setTimeOffset(1E-9*(System.nanoTime() - ini)*playBackSpeed);
+//			if (rep == 1) {
+//				offset = audio.getClip().getMicrosecondPosition()*playBackSpeed*1E-6 - (System.nanoTime()-ini)*playBackSpeed*1E-9;
+//				if (Math.abs(offset) > 0.05) {
+//					ini -= offset / playBackSpeed * 1E9;
+//				}
+//			}
+//			if((System.nanoTime()-ini)*playBackSpeed >= audio.getClip().getMicrosecondLength() * 1E3 * playBackSpeed) {
+//				stop();
+//				audio.stop();
+//			}
+//			repaint();
+//			sleep(10);
+//		}
+//		if (stopped) bar.setTimeOffset(0);
+//		repaint();
+//	}
+//	/**
+//	 * Pauses the threads
+//	 * @param sleep Amount of time to sleep in milliseconds
+//	 */
+//	public void sleep(int sleep) {
+//		try {
+//			Thread.sleep(sleep);
+//		}
+//		catch(InterruptedException e) {
+//			System.out.println(e);
+//		}
+//	}
+//	/**
+//	 * Starts the repaints
+//	 */
+//	public void start() {
+//		if (!running) {
+//			running = true;
+//			stopped = false;
+//			final Thread thread = new Thread(this);
+//			thread.start();
+//		}
+//	}
+//	/**
+//	 * Pauses the repaints
+//	 */
+//	public void pause() {
+//		if (running) running = false;
+//	}
+//	/**
+//	 * Stops the repaints
+//	 */
+//	public void stop() {
+//		if (running) running = false;
+//		bar.setTimeOffset(0);
+//		stopped = true;
+//		repaint();
+//	}
 	/**
 	 * Makes sure the offset is in the middle of the plot
 	 */
@@ -773,18 +772,22 @@ public class Plot extends JPanel implements Runnable {
 	public int getxOffset() {
 		return offsetVec.getFlooredX();
 	}
-	public void setAudio(AudioPlayback audio) {
-		this.audio = audio;
-	}
 	public double getSamplesPerPixel() {
 		return samplesPerPixel;
 	}
 	public double getxPixelsPerUnit() {
 		return pixelsPerUnitVec.getX();
 	}
-	public void setPlayBackSpeed(double playBackSpeed) {
-		this.playBackSpeed = playBackSpeed;
-	}
+//	public void setPlayBackSpeed(double playBackSpeed) {
+//		this.playBackSpeed = playBackSpeed;
+//	}
+//	public AudioPlayback getAudio() {
+//		return audio;
+//	}
+//	public void setAudio(AudioPlayback audio) {
+//		this.audio = audio;
+//	}
+	
 }
 
 /**

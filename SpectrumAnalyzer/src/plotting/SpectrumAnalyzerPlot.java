@@ -7,4 +7,7 @@ public class SpectrumAnalyzerPlot extends Plot {
 	public SpectrumAnalyzerPlot(double[][] values, double samplesPerUnit, String[] channelsLegend) {
 		super(values, samplesPerUnit, channelsLegend);
 	}
+	public SpectrumAnalyzerPlot() {
+		super();
+	}
 }

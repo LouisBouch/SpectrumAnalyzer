@@ -11,14 +11,14 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
-import plotting.Plot;
+import plotting.AudioPlot;
+import plotting.SpectrumAnalyzerPlot;
 import soundProcessing.AudioPlayback;
 import soundProcessing.AudioSettingsWindow;
 import tools.ScreenSizeTool;
@@ -36,7 +36,7 @@ public class MainWindow extends JPanel {
 	
 	private WavReader wavFileInfo;
 	
-	private ArrayList<Plot> plots = new ArrayList<>();
+//	private ArrayList<Plot> plots = new ArrayList<>();
 
 	private AudioSettingsWindow audioSettings;//The settings window
 	private AudioPlayback audio;//Contains the samples to be played
@@ -44,6 +44,8 @@ public class MainWindow extends JPanel {
 	private Dimension plotSize = new Dimension(ScreenSizeTool.WIDTH * 3/4, ScreenSizeTool.HEIGHT * 1/2);
 
 	private boolean fileOpened = false;
+
+	private AudioPlot audioPlot;
 
 
 	/**
@@ -56,14 +58,14 @@ public class MainWindow extends JPanel {
 		setLayout(new MigLayout("", col, row));
 		setAudio();
 
-		Plot waveFormPlot = new Plot();
-		waveFormPlot.setPreferredSize(plotSize);
-		plots.add(waveFormPlot);
-		add(waveFormPlot, "cell 7 0 1 5");
+		audioPlot = new AudioPlot();
+		audioPlot.setPreferredSize(plotSize);
+//		plots.add(waveFormPlot);
+		add(audioPlot, "cell 7 0 1 5");
 
-		Plot spectrumAnalyzerPlot = new Plot();
+		SpectrumAnalyzerPlot spectrumAnalyzerPlot = new SpectrumAnalyzerPlot();
 		spectrumAnalyzerPlot.setPreferredSize(plotSize);
-		plots.add(spectrumAnalyzerPlot);
+//		plots.add(spectrumAnalyzerPlot);
 		add(spectrumAnalyzerPlot, "cell 7 5 1 5");
 
 		InfoPanel wavInfoPanel = new InfoPanel();
@@ -131,7 +133,7 @@ public class MainWindow extends JPanel {
 						audio.reInitialize(infoResservoir, audioSettings.getClip(), infoResservoir.getDataInfo().getData());
 						
 //						plots.get(0).setWavInfo(infoResservoir);
-						plots.get(0).loadWave(infoResservoir.getDataInfo().getChannelSeparatedData(), 
+						audioPlot.loadWave(infoResservoir.getDataInfo().getChannelSeparatedData(), 
 								infoResservoir.getFormatInfo().getSampleRate(), 
 								infoResservoir.getFormatInfo().getChannelsLocationLongName());
 						
@@ -169,17 +171,16 @@ public class MainWindow extends JPanel {
 	 * Start, pauses and resumes audio
 	 */
 	public void startPause() {
-		Plot plot = plots.get(0);
 		if (fileOpened) {
 			if (!audio.isPlaying()) {
-				if (audio.getClip().getMicrosecondPosition() == 0) plot.setPlayBackSpeed(audio.getPlayBackSpeed());
+				if (audio.getClip().getMicrosecondPosition() == 0) audioPlot.setPlayBackSpeed(audio.getPlayBackSpeed());
 				audio.play();
-				plot.setAudio(audio);
-				plot.start();
+				audioPlot.setAudio(audio);
+				audioPlot.start();
 			}
 			else {
 				audio.pause();
-				plot.pause();
+				audioPlot.pause();
 			}
 		}
 	}
@@ -190,7 +191,7 @@ public class MainWindow extends JPanel {
 		if (audio.getClip().isOpen()) {
 			audio.stop();
 		}
-		plots.get(0).stop();
+		audioPlot.stop();
 	}
 	/**
 	 * Sets the dimension for the layout
