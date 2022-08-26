@@ -40,6 +40,8 @@ public class MainWindow extends JPanel {
 
 	private AudioSettingsWindow audioSettings;//The settings window
 	private AudioPlayback audio;//Contains the samples to be played
+	
+	private Dimension plotSize = new Dimension(ScreenSizeTool.WIDTH * 3/4, ScreenSizeTool.HEIGHT * 1/2);
 
 	private boolean fileOpened = false;
 
@@ -55,10 +57,12 @@ public class MainWindow extends JPanel {
 		setAudio();
 
 		Plot waveFormPlot = new Plot();
+		waveFormPlot.setPreferredSize(plotSize);
 		plots.add(waveFormPlot);
 		add(waveFormPlot, "cell 7 0 1 5");
 
 		Plot spectrumAnalyzerPlot = new Plot();
+		spectrumAnalyzerPlot.setPreferredSize(plotSize);
 		plots.add(spectrumAnalyzerPlot);
 		add(spectrumAnalyzerPlot, "cell 7 5 1 5");
 

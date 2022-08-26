@@ -21,7 +21,6 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
 import soundProcessing.AudioPlayback;
-import tools.ScreenSizeTool;
 import tools.Vector2D;
 
 public class Plot extends JPanel implements Runnable {
@@ -52,7 +51,7 @@ public class Plot extends JPanel implements Runnable {
 	private int nbSamples;//Amount of samples in the channel
 	private double samplesPerUnit;//The amount of samples required to make one unit (x axis)
 	private int nbPossiblePlots;//The amount of plots that can be created from the different channels
-	private int[] channelsToPlot;//The channel to use to make the plot
+	private int[] channelsToPlot = {0};//The channel to use to make the plot
 
 
 	private int startingPixelsPerUnit = 100;//The starting amount of pixels per unit
@@ -87,6 +86,7 @@ public class Plot extends JPanel implements Runnable {
 	 * Creates the object and the wave at the same time
 	 * @param values The data from the wav file
 	 * @param samplesPerUnit The amount of samples required to make one unit (x axis)
+	 * @param plotsLegend A legend of each plot. Each array item contains information about the name of the plot
 	 */
 	public Plot(double[][] values, double samplesPerUnit, String[] plotsLegend) {
 		prepPlot();
@@ -104,11 +104,8 @@ public class Plot extends JPanel implements Runnable {
 	 */
 	public void prepPlot() {
 		setBackground(backGroundColor);
-		panelSize = new Dimension(ScreenSizeTool.WIDTH * 3/4, ScreenSizeTool.HEIGHT * 1/2);
-		setPreferredSize(panelSize);
+		panelSize = getPreferredSize();
 		offsetVec = new Vector2D(panelSize.getWidth() * 1/2, panelSize.getHeight() * 1/2);
-		channelsToPlot = new int[1];
-		channelsToPlot[0] = 0;
 
 		SpringLayout springLayout = new SpringLayout();
 		setLayout(springLayout);
@@ -619,7 +616,6 @@ public class Plot extends JPanel implements Runnable {
 			//y
 			if (Math.pow(zoomPercentage, zoomAmountVec.getY()) >= zoomInThresholdVec.getY()) {//Too zoomed in
 				if (((divAmountByTwoVec.getY() + divAmountByFiveHalfVec.getY()) % 3 + 3) % 3 == 1) {
-//					yDivAmountByFiveHalf++;
 					divAmountByFiveHalfVec.addY(1);
 				}
 				else {
@@ -628,22 +624,18 @@ public class Plot extends JPanel implements Runnable {
 			}
 			else if (Math.pow(zoomPercentage, zoomAmountVec.getY()) < zoomOutThresholdVec.getY()) {//Too zoomed out
 				if (((divAmountByTwoVec.getY() + divAmountByFiveHalfVec.getY()) % 3 + 3) % 3 == 2) {
-//					yDivAmountByFiveHalf--;
 					divAmountByFiveHalfVec.addY(-1);
 				}
 				else {
-//					yDivAmountByTwo--;
 					divAmountByTwoVec.addY(-1);
 				}
 			} else finished = true;
 			//x
 			if (Math.pow(zoomPercentage, zoomAmountVec.getX()) >= zoomInThresholdVec.getX()) {//Too zoomed in
 				if (((divAmountByTwoVec.getX() + divAmountByFiveHalfVec.getX()) % 3 + 3) % 3 == 1) {
-//					xDivAmountByFiveHalf++;
 					divAmountByFiveHalfVec.addX(1);
 				}
 				else {
-//					xDivAmountByTwo++;
 					divAmountByTwoVec.addX(1);
 				}
 			}
@@ -660,8 +652,6 @@ public class Plot extends JPanel implements Runnable {
 		} while (!finished);
 
 		//Adjusts the scale
-//		yScale = Math.pow(2, -divAmountByTwoVec.getY()) * Math.pow(2.5, -divAmountByFiveHalfVec.getY());
-//		xScale = Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX());
 		scaleVec.setValues(Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX()),
 				Math.pow(2, -divAmountByTwoVec.getX()) * Math.pow(2.5, -divAmountByFiveHalfVec.getX()));
 
@@ -742,6 +732,15 @@ public class Plot extends JPanel implements Runnable {
 		repaint();
 	}
 	/**
+	 * Makes sure the offset is in the middle of the plot
+	 */
+	@Override
+	public void setPreferredSize(Dimension dimension) {
+		super.setPreferredSize(dimension);
+		panelSize = getPreferredSize();
+		offsetVec = new Vector2D(panelSize.getWidth() * 1/2, panelSize.getHeight() * 1/2);
+	}
+	/**
 	 * Sets the channel to plot
 	 * @param channelToPlot The channel index
 	 */
@@ -786,7 +785,6 @@ public class Plot extends JPanel implements Runnable {
 	public void setPlayBackSpeed(double playBackSpeed) {
 		this.playBackSpeed = playBackSpeed;
 	}
-	
 }
 
 /**
