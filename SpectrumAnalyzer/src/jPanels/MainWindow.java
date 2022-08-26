@@ -135,7 +135,8 @@ public class MainWindow extends JPanel {
 //						plots.get(0).setWavInfo(infoResservoir);
 						audioPlot.loadWave(infoResservoir.getDataInfo().getChannelSeparatedData(), 
 								infoResservoir.getFormatInfo().getSampleRate(), 
-								infoResservoir.getFormatInfo().getChannelsLocationLongName());
+								infoResservoir.getFormatInfo().getChannelsLocationLongName(),
+								audio);
 						
 						fileOpened = true;
 					}
@@ -175,7 +176,6 @@ public class MainWindow extends JPanel {
 			if (!audio.isPlaying()) {
 				if (audio.getClip().getMicrosecondPosition() == 0) audioPlot.setPlayBackSpeed(audio.getPlayBackSpeed());
 				audio.play();
-				audioPlot.setAudio(audio);
 				audioPlot.start();
 			}
 			else {

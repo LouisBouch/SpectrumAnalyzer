@@ -160,9 +160,10 @@ public class Vector2D {
 	 * @param x The x value
 	 * @param y The y value
 	 */
-	public void setValues(double x, double y) {
+	public Vector2D setValues(double x, double y) {
 		this.x = x;
 		this.y = y;
+		return this;
 	}
 	/**
 	 * Gets the x value

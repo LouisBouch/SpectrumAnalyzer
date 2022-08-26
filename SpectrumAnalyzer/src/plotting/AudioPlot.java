@@ -2,6 +2,8 @@ package plotting;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import soundProcessing.AudioPlayback;
 
@@ -44,7 +46,16 @@ public class AudioPlot extends Plot implements Runnable {
 	 * @param audio Contains the audio clip and everything necessary to get the bar running
 	 */
 	public void loadWave(double[][] values, double samplesPerUnit, String[] plotsLegend, AudioPlayback audio) {
+		this.loadWave(values, samplesPerUnit, plotsLegend);
 		this.audio = audio;
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.getModifiersEx() == 1088) System.out.println("shift");;
+				if (e.getModifiersEx() == 1152) System.out.println("ctrl");;
+				repaint();
+			}
+		});//End addMouseListener
 	}
 	@Override
 	public void paintComponent(Graphics g) {
