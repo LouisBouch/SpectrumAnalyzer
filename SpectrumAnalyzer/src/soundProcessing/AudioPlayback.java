@@ -67,7 +67,7 @@ public class AudioPlayback implements Runnable{
 					System.out.println(e);
 				}
 			}//End if
-			if (!clip.isRunning()) {
+			if (!clip.isRunning() && clip.isOpen()) {
 				clip.start();
 				playing = true;
 			}//End if

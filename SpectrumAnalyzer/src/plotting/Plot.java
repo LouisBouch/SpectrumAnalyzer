@@ -42,7 +42,7 @@ public class Plot extends JPanel {
 	private int nbSamples;//Amount of samples in the channel
 	private double samplesPerUnit;//The amount of samples required to make one unit (x axis)
 	private int nbPossiblePlots;//The amount of plots that can be created from the different channels
-	private int[] channelsToPlot = {0};//The channel to use to make the plot
+	private int[] channelsToPlot;//The channel to use to make the plot
 
 	private double anticipationValue = 0.8;//Number between 0-1 with 0 giving a more compact grid and 1 giving a more spaced grid
 	private double gridSize = 0.5;//Bigger values give bigger grids
@@ -164,6 +164,7 @@ public class Plot extends JPanel {
 		this.samplesPerUnit = samplesPerUnit;
 		nbPossiblePlots = values.length;
 		nbSamples = 0;
+		channelsToPlot = new int[1]; channelsToPlot[0] = 0;
 		for (int plot = 0; plot < nbPossiblePlots; plot++) {//Checks for max samples
 			nbSamples = values[plot].length > nbSamples ? values[plot].length : nbSamples;
 		}
@@ -270,7 +271,6 @@ public class Plot extends JPanel {
 					//More than 1 sample per pixel allows to increment x by 1 each time
 					if (pixelIncrement == 1) {
 						xIni = offsetVec.getX() <= 0 ? 0 : offsetVec.getFlooredX();
-//						yIni = offsetVec.getFlooredY() - (int) Math.round(values[channelsToPlot[channel]][sampleOffset] * pixelsPerUnitVec.getY());
 						
 						int index = 0;
 						int indexOffset = offsetVec.getX() < 0 ? -offsetVec.getFlooredX() : 0;
@@ -278,7 +278,7 @@ public class Plot extends JPanel {
 						//Low density draw values
 						double[] minMax;
 						int sampleSize;
-						int lastSampleChecked = -1;
+						int lastSampleChecked = (int) Math.round((xIni - offsetVec.getX()) * samplesPerPixel) - 1;
 						int gap;//Gap between old value and new value
 						do {
 							xFin = xIni + 1;
@@ -299,9 +299,11 @@ public class Plot extends JPanel {
 									sampleNb -= gap;
 									sampleSize += gap;
 								}
-
+								//Prevents out of bounds exception
+								if (sampleNb >= values[channelsToPlot[channel]].length) break;
 								minMax = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleNb, sampleSize);
 								lastSampleChecked = (sampleNb + sampleSize - 1);
+								
 								yIni = offsetVec.getFlooredY() - (int) Math.round(minMax[0] * pixelsPerUnitVec.getY());
 								yFin = offsetVec.getFlooredY() - (int) Math.round(minMax[1] * pixelsPerUnitVec.getY());
 							}
@@ -320,10 +322,12 @@ public class Plot extends JPanel {
 					
 					else {//Increment by more than one pixel each time. Increments the values by one each time
 						int iterationNb = 1;
-
+						
+						//Get first sample number
 						sampleNb = (int) ((offsetVec.getX() < 0 ? -offsetVec.getFlooredX() : 0) * samplesPerPixel);
 						yIni = offsetVec.getFlooredY() - (int) Math.round(values[channelsToPlot[channel]][sampleNb] * pixelsPerUnitVec.getY());
-
+						
+						//Get initial xPos
 						double xInitialeValue = (sampleNb / samplesPerPixel) + offsetVec.getX();//Decides the initial x position based on the sample used
 						xIni = (int) xInitialeValue;
 
@@ -351,12 +355,13 @@ public class Plot extends JPanel {
 	 * Fills the value array
 	 */
 	public void fillArray(double[][][] arrayToFill, double[][] values, int channels, int[] channelsToPlot) {
-		int pixel = 0;
+		int pixel;
 		int sampleStart;
 		int sampleSize;
-		int lastSampleChecked = -1;
+		int lastSampleChecked;
 		int gap;//Gap between old value and new value
 		for (int channel = 0; channel < channels; channel++) {
+			lastSampleChecked = -1;
 			for (pixel = 0; pixel < arrayToFill[channel].length; pixel++) {
 				sampleStart = (int) Math.round(pixel * samplesPerPixel);
 				sampleSize = (int) Math.round(samplesPerPixel);
@@ -366,6 +371,9 @@ public class Plot extends JPanel {
 					sampleStart -= gap;
 					sampleSize += gap;
 				}
+				//Prevents out of bounds exception
+				if (sampleStart >= values[channelsToPlot[channel]].length) break;
+				
 				arrayToFill[channel][pixel] = minMaxOfSampleChunk(values[channelsToPlot[channel]], sampleStart, sampleSize);
 				lastSampleChecked = (sampleStart + sampleSize - 1);
 			}
