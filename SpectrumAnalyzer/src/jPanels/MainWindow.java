@@ -13,8 +13,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
 import plotting.AudioPlot;
@@ -46,6 +49,8 @@ public class MainWindow extends JPanel {
 	private boolean fileOpened = false;
 
 	private AudioPlot audioPlot;
+	
+	private Color backgroundColor = new Color(80, 85, 110);
 
 
 	/**
@@ -53,7 +58,7 @@ public class MainWindow extends JPanel {
 	 */
 	public MainWindow() {
 		setBounds(0, 0, ScreenSizeTool.WIDTH , ScreenSizeTool.HEIGHT - 63);	
-		setBackground(new Color(80, 85, 110));
+		setBackground(backgroundColor);
 		setLayoutDim();
 		setLayout(new MigLayout("", col, row));
 		setAudio();
@@ -87,12 +92,24 @@ public class MainWindow extends JPanel {
 		JButton btn_audioSet = new JButton("Audio settings");
 		btn_stop.setFocusable(false);
 		add(btn_audioSet, "cell 1 9, bottom");
+		
+		JCheckBox checkBox = new JCheckBox("Loop");
+		checkBox.setBackground(backgroundColor);
+		checkBox.setForeground(new Color(200, 200, 200));
+		checkBox.setFocusable(false);
+		add(checkBox, "cell 3 5");
 
 		//Listeners
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				System.out.println(e.getX() + ", " + e.getY());
+			}
+		});
+		checkBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				audioPlot.setLooping(checkBox.isSelected());				
 			}
 		});
 		//Gets a file and prepare the necessary information to analyze it
@@ -129,14 +146,13 @@ public class MainWindow extends JPanel {
 						wavInfoPanel.setText(wavFileInfo.getInfoReservoir().toString());
 						
 						WavInfo infoResservoir = wavFileInfo.getInfoReservoir();
-						stop();
 						audio.reInitialize(infoResservoir, audioSettings.getClip(), infoResservoir.getDataInfo().getData());
 						
-//						plots.get(0).setWavInfo(infoResservoir);
 						audioPlot.loadWave(infoResservoir.getDataInfo().getChannelSeparatedData(), 
 								infoResservoir.getFormatInfo().getSampleRate(), 
 								infoResservoir.getFormatInfo().getChannelsLocationLongName(),
 								audio);
+						stop();
 						
 						fileOpened = true;
 					}
@@ -174,12 +190,9 @@ public class MainWindow extends JPanel {
 	public void startPause() {
 		if (fileOpened) {
 			if (!audio.isPlaying()) {
-				if (audio.getClip().getMicrosecondPosition() == 0) audioPlot.setPlayBackSpeed(audio.getPlayBackSpeed());
-				audio.play();
 				audioPlot.start();
 			}
 			else {
-				audio.pause();
 				audioPlot.pause();
 			}
 		}
@@ -188,9 +201,6 @@ public class MainWindow extends JPanel {
 	 * Stops audio
 	 */
 	public void stop() {
-		if (audio.getClip().isOpen()) {
-			audio.stop();
-		}
 		audioPlot.stop();
 	}
 	/**

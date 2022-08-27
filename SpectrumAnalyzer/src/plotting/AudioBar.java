@@ -3,9 +3,9 @@ package plotting;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 
-public class AudioBar extends JPanel{
+public class AudioBar extends JComponent{
 	
 	private static final long serialVersionUID = 4351930063200370359L;
 	
@@ -15,6 +15,10 @@ public class AudioBar extends JPanel{
 	
 	private Plot plot;
 	
+	/**
+	 * Creates an audio bar
+	 * @param plot The plot which has the audio bar
+	 */
 	public AudioBar(Plot plot) {
 		this.plot = plot;
 	}

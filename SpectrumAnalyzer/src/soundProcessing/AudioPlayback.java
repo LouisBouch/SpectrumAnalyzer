@@ -75,6 +75,34 @@ public class AudioPlayback implements Runnable{
 	}//End play
 	
 	/**
+	 * Loops the audio through samples
+	 * @param firstSample Sample start
+	 * @param lastSample Sample end
+	 */
+	public void loop(int firstSample, int lastSample) {
+		if (clip != null && wavInfo != null) {
+			if (!clip.isOpen()) {
+				try {
+					FormatInfo formatInfo = wavInfo.getFormatInfo();
+					boolean signed = formatInfo.getBitsPerSample() <= 8 ? false : true;
+					AudioFormat format = new AudioFormat((int) (formatInfo.getSampleRate() * playBackSpeed), formatInfo.getBlockAlign() * 8 / formatInfo.getNbChannels(), formatInfo.getNbChannels(), signed, false);
+					
+					clip.open(format, data, 0, wavInfo.getDataInfo().getData().length);
+					clip.setFramePosition(firstSample);
+					clip.setLoopPoints(firstSample, lastSample - 1);
+				}
+				catch (LineUnavailableException e) {
+					System.out.println(e);
+				}
+			}//End if
+			if (!clip.isRunning() && clip.isOpen()) {
+				clip.loop(Clip.LOOP_CONTINUOUSLY);
+				playing = true;
+			}//End if
+		}//End if
+	}//End loop
+	
+	/**
 	 * Stops the play back
 	 */
 	public void stop() {

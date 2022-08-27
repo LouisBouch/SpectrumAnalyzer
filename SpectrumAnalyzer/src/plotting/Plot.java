@@ -604,24 +604,6 @@ public class Plot extends JPanel {
 	}
 
 	/**
-	 * Makes sure the offset is in the middle of the plot
-	 */
-	@Override
-	public void setPreferredSize(Dimension dimension) {
-		super.setPreferredSize(dimension);
-		panelSize = getPreferredSize();
-		offsetVec = new Vector2D(panelSize.getWidth() * 1/2, panelSize.getHeight() * 1/2);
-	}
-	/**
-	 * Sets the channel to plot
-	 * @param channelToPlot The channel index
-	 */
-	public void setChannelToPlot(int[] channelToPlot) {
-		this.channelsToPlot = channelToPlot;
-		arrayFillingNecessary = true;
-		repaint();
-	}
-	/**
 	 * Gets the amount of possible plots
 	 * @return Possible plots
 	 */
@@ -643,6 +625,30 @@ public class Plot extends JPanel {
 	}
 	public double getxPixelsPerUnit() {
 		return pixelsPerUnitVec.getX();
+	}
+	public int getNbSamples() {
+		return nbSamples;
+	}
+	public double getSamplesPerUnit() {
+		return samplesPerUnit;
+	}
+	/**
+	 * Makes sure the offset is in the middle of the plot
+	 */
+	@Override
+	public void setPreferredSize(Dimension dimension) {
+		super.setPreferredSize(dimension);
+		panelSize = getPreferredSize();
+		offsetVec = new Vector2D(panelSize.getWidth() * 1/2, panelSize.getHeight() * 1/2);
+	}
+	/**
+	 * Sets the channel to plot
+	 * @param channelToPlot The channel index
+	 */
+	public void setChannelToPlot(int[] channelToPlot) {
+		this.channelsToPlot = channelToPlot;
+		arrayFillingNecessary = true;
+		repaint();
 	}
 }
 
